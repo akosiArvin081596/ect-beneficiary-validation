@@ -24,32 +24,33 @@ createInertiaApp({
     },
 });
 
-// Prevent Inertia from showing a modal when navigating offline.
-// The SW returns Response.error() for uncached Inertia XHR requests,
-// which causes a network error that triggers this callback.
-router.on('error', () => {
+// ── Offline error handling ────────────────────────────────────────────────────
+// Prevent Inertia from showing modals / throwing when offline.
+//
+// "exception" fires on network errors (fetch rejection / Response.error()).
+// Returning false cancels the default re-throw.
+router.on('exception', () => {
     if (!navigator.onLine) {
         showOfflineToast();
-        return true; // prevent default handling
+        return false;
     }
 });
 
-// Non-Inertia responses (e.g. 503 from SW) trigger the "invalid" event.
-// Returning false prevents the default modal behavior.
-router.on('invalid', (event) => {
+// "invalid" fires on non-Inertia responses (e.g. 503 plain text from old SW).
+// Returning false cancels the default modal.
+router.on('invalid', () => {
     if (!navigator.onLine) {
-        event.preventDefault();
         showOfflineToast();
+        return false;
     }
 });
 
 function showOfflineToast() {
-    // Remove existing offline toast if present
     document.getElementById('offline-toast')?.remove();
 
     const toast = document.createElement('div');
     toast.id = 'offline-toast';
-    toast.textContent = 'You are offline. Please reconnect to navigate.';
+    toast.textContent = 'You are offline. This page has not been cached yet.';
     Object.assign(toast.style, {
         position: 'fixed',
         bottom: '1.5rem',
