@@ -96,7 +96,14 @@ async function networkFirst(cacheName, request) {
             if (shell) return shell;
         }
 
-        // Last resort
+        // For Inertia XHR requests, throw so the client's fetch() rejects
+        // as a real network error — Inertia will fire its error callback
+        // instead of rendering a 503 plain text body inside a modal.
+        if (isInertia) {
+            return Response.error();
+        }
+
+        // Last resort for non-Inertia navigations
         return new Response(
             'You are offline and this page has not been cached yet. Please connect and reload.',
             { status: 503, headers: { 'Content-Type': 'text/plain' } }
