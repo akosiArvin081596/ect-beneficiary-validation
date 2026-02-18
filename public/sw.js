@@ -1,4 +1,4 @@
-const CACHE_PAGES  = 'ect-bv-pages-v2';
+const CACHE_PAGES  = 'ect-bv-pages-v3';
 const CACHE_STATIC = 'ect-bv-static-v1';
 const CACHE_FONTS  = 'ect-bv-fonts-v1';
 const CACHE_SHELL  = 'ect-bv-shell-v1';
@@ -72,9 +72,7 @@ async function networkFirst(cacheName, request) {
         if (response.ok && response.type !== 'opaque') {
             cache.put(request, response.clone());
 
-            // When we get a full HTML page (non-Inertia), save a copy as the
-            // app shell. This is used later as the offline fallback for any
-            // navigation request — the Inertia client-side will handle routing.
+            // Save full HTML pages as the app shell for offline fallback.
             if (isNavigate && !isInertia) {
                 const shellCache = await caches.open(CACHE_SHELL);
                 shellCache.put(SHELL_KEY, response.clone());
@@ -83,30 +81,77 @@ async function networkFirst(cacheName, request) {
 
         return response;
     } catch {
-        // Network failed — try exact cache match (ignoreVary so Inertia XHR
-        // responses can match even when the Vary: X-Inertia header differs)
         const cached = await cache.match(request, { ignoreVary: true });
-        if (cached) return cached;
 
-        // For page navigations, serve the saved app shell so the Inertia
-        // client-side boots with a real HTML page instead of a 503 error.
+        if (cached) {
+            const isJSON = (cached.headers.get('Content-Type') || '').includes('application/json');
+
+            // Inertia XHR → return cached JSON directly (normal offline navigation)
+            if (!isNavigate) {
+                return cached;
+            }
+
+            // Full page refresh with cached Inertia JSON → build an HTML page
+            // by injecting the JSON into the app shell so Inertia can boot.
+            if (isJSON) {
+                const html = await buildOfflineHtml(cached);
+                if (html) return html;
+            }
+
+            // Cached HTML → return directly
+            return cached;
+        }
+
+        // No cache at all → serve app shell for navigations
         if (isNavigate) {
             const shellCache = await caches.open(CACHE_SHELL);
             const shell = await shellCache.match(SHELL_KEY);
             if (shell) return shell;
         }
 
-        // For Inertia XHR requests, throw so the client's fetch() rejects
-        // as a real network error — Inertia will fire its error callback
-        // instead of rendering a 503 plain text body inside a modal.
+        // Inertia XHR with no cache → network error so Inertia fires "exception"
         if (isInertia) {
             return Response.error();
         }
 
-        // Last resort for non-Inertia navigations
+        // Last resort
         return new Response(
             'You are offline and this page has not been cached yet. Please connect and reload.',
             { status: 503, headers: { 'Content-Type': 'text/plain' } }
         );
+    }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Build an HTML page from the app shell + cached Inertia JSON.
+ * Replaces the data-page attribute in the shell with the cached page data
+ * so Inertia boots with the correct component and props.
+ */
+async function buildOfflineHtml(cachedJsonResponse) {
+    try {
+        const shellCache = await caches.open(CACHE_SHELL);
+        const shell = await shellCache.match(SHELL_KEY);
+        if (!shell) return null;
+
+        const [shellHtml, pageData] = await Promise.all([
+            shell.text(),
+            cachedJsonResponse.json(),
+        ]);
+
+        // The shell contains: <div id="app" data-page="...encoded json..."></div>
+        // Replace the data-page value with the cached Inertia page data.
+        const encoded = JSON.stringify(pageData).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        const html = shellHtml.replace(
+            /data-page="[^"]*"/,
+            `data-page="${encoded}"`
+        );
+
+        return new Response(html, {
+            headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+    } catch {
+        return null;
     }
 }
