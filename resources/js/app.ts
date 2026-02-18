@@ -77,3 +77,33 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js');
     });
 }
+
+// ── Precache key pages after login ───────────────────────────────────────────
+// When the first authenticated page loads, fetch the key pages in the
+// background so they're in the SW cache before the user goes offline.
+// Uses X-Inertia header so the server returns JSON (same as normal navigation).
+let precached = false;
+
+router.on('navigate', (event) => {
+    if (precached) return;
+    const page = (event as CustomEvent).detail?.page;
+    if (!page?.props?.auth?.user) return;
+
+    precached = true;
+
+    const pages = ['/dashboard', '/beneficiaries', '/beneficiaries/create'];
+    for (const url of pages) {
+        // Skip the page we're already on (it's being cached by the SW right now)
+        if (url === page.url) continue;
+
+        fetch(url, {
+            headers: {
+                'X-Inertia': 'true',
+                Accept: 'text/html, application/xhtml+xml',
+            },
+            credentials: 'same-origin',
+        }).catch(() => {
+            // Silently ignore — precaching is best-effort
+        });
+    }
+});
