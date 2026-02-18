@@ -1,0 +1,185 @@
+<script setup lang="ts">
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
+import { Button } from '@/components/ui/button';
+import { useOfflineQueue } from '@/composables/useOfflineQueue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { index, create } from '@/routes/beneficiaries';
+import { type BreadcrumbItem } from '@/types';
+
+interface Beneficiary {
+    id: number;
+    first_name: string;
+    last_name: string;
+    middle_name: string | null;
+    municipality: string;
+    barangay: string;
+    civil_status: string;
+    created_at: string;
+}
+
+interface PaginatedBeneficiaries {
+    data: Beneficiary[];
+    links: { url: string | null; label: string; active: boolean }[];
+    meta?: {
+        current_page: number;
+        last_page: number;
+        total: number;
+    };
+}
+
+defineProps<{
+    beneficiaries: PaginatedBeneficiaries;
+}>();
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Beneficiaries',
+        href: index().url,
+    },
+];
+
+function fullName(b: Beneficiary): string {
+    const parts = [b.last_name, b.first_name];
+    if (b.middle_name) parts.push(b.middle_name.charAt(0) + '.');
+    return parts.join(', ');
+}
+
+function formatDate(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString('en-PH', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    });
+}
+
+// ── Offline queue ────────────────────────────────────────────────────────────
+const { pendingCount, failedCount, isSyncing, lastSyncMessage, syncAll, retryFailed } = useOfflineQueue();
+
+// Reload list after sync completes
+watch(isSyncing, (syncing, was) => {
+    if (was && !syncing) router.reload({ only: ['beneficiaries'] });
+});
+
+// ── Toast ────────────────────────────────────────────────────────────────────
+const toastVisible = ref(false);
+const toastMessage = ref('');
+const toastType = ref<'success' | 'error' | 'info'>('info');
+watch(lastSyncMessage, (msg) => {
+    if (!msg) return;
+    toastMessage.value = msg.text;
+    toastType.value = msg.type;
+    toastVisible.value = true;
+    setTimeout(() => {
+        toastVisible.value = false;
+    }, 5000);
+});
+</script>
+
+<template>
+    <Head title="Beneficiaries" />
+
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div class="flex flex-1 flex-col gap-4 p-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-semibold">Beneficiaries</h1>
+                <Button as-child>
+                    <Link :href="create().url">Add Beneficiary</Link>
+                </Button>
+            </div>
+
+            <!-- Offline queue status bar -->
+            <div
+                v-if="pendingCount > 0 || failedCount > 0"
+                class="flex items-center justify-between rounded-lg border px-4 py-3 text-sm"
+                :class="
+                    failedCount > 0
+                        ? 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200'
+                        : 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200'
+                "
+            >
+                <span>
+                    <span v-if="pendingCount > 0">{{ pendingCount }} record(s) pending sync.</span>
+                    <span v-if="failedCount > 0" class="ml-2 text-red-700 dark:text-red-300">{{ failedCount }} failed (validation error).</span>
+                </span>
+                <div class="flex gap-2">
+                    <Button v-if="failedCount > 0" size="sm" variant="outline" @click="retryFailed" :disabled="isSyncing">Retry Failed</Button>
+                    <Button size="sm" variant="outline" @click="syncAll" :disabled="isSyncing || pendingCount === 0">
+                        {{ isSyncing ? 'Syncing…' : 'Sync Now' }}
+                    </Button>
+                </div>
+            </div>
+
+            <div class="overflow-hidden rounded-xl border">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-muted/50 border-b">
+                            <th class="px-4 py-3 text-left font-medium">Full Name</th>
+                            <th class="px-4 py-3 text-left font-medium">Municipality</th>
+                            <th class="px-4 py-3 text-left font-medium">Barangay</th>
+                            <th class="px-4 py-3 text-left font-medium">Civil Status</th>
+                            <th class="px-4 py-3 text-left font-medium">Date Added</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-if="beneficiaries.data.length === 0">
+                            <td colspan="5" class="text-muted-foreground px-4 py-8 text-center">
+                                No beneficiaries recorded yet.
+                            </td>
+                        </tr>
+                        <tr
+                            v-for="b in beneficiaries.data"
+                            :key="b.id"
+                            class="hover:bg-muted/30 border-b last:border-0"
+                        >
+                            <td class="px-4 py-3 font-medium">{{ fullName(b) }}</td>
+                            <td class="px-4 py-3">{{ b.municipality }}</td>
+                            <td class="px-4 py-3">{{ b.barangay }}</td>
+                            <td class="px-4 py-3">{{ b.civil_status }}</td>
+                            <td class="px-4 py-3">{{ formatDate(b.created_at) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div v-if="beneficiaries.links.length > 3" class="flex flex-wrap gap-1">
+                <template v-for="link in beneficiaries.links" :key="link.label">
+                    <Link
+                        v-if="link.url"
+                        :href="link.url"
+                        class="rounded border px-3 py-1 text-sm transition-colors"
+                        :class="link.active ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted'"
+                    ><span v-html="link.label" /></Link>
+                    <span
+                        v-else
+                        class="text-muted-foreground rounded border px-3 py-1 text-sm opacity-50"
+                        v-html="link.label"
+                    />
+                </template>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <Transition
+            enter-active-class="transition ease-out duration-300"
+            enter-from-class="translate-y-2 opacity-0"
+            enter-to-class="translate-y-0 opacity-100"
+            leave-active-class="transition ease-in duration-200"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="toastVisible"
+                class="fixed bottom-6 right-6 z-50 max-w-sm rounded-lg border px-4 py-3 text-sm shadow-lg"
+                :class="{
+                    'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200': toastType === 'success',
+                    'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200': toastType === 'error',
+                    'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200': toastType === 'info',
+                }"
+            >
+                {{ toastMessage }}
+            </div>
+        </Transition>
+    </AppLayout>
+</template>
