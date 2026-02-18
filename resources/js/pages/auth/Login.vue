@@ -24,10 +24,10 @@ const showPassword = ref(false);
     <Head title="Sign In" />
 
     <div
-        class="fixed inset-0 flex flex-col bg-slate-100 xl:static xl:min-h-screen xl:items-center xl:justify-center xl:px-6 xl:py-8 dark:bg-slate-950"
+        class="flex h-dvh flex-col bg-slate-100 xl:h-auto xl:min-h-screen xl:items-center xl:justify-center xl:px-6 xl:py-8 dark:bg-slate-950"
     >
         <div
-            class="flex w-full flex-1 flex-col items-center animate-fade-in-up xl:max-w-lg xl:flex-none"
+            class="flex w-full flex-1 animate-fade-in-up flex-col items-center xl:max-w-lg xl:flex-none"
         >
             <!-- Blue gradient header -->
             <div
@@ -63,9 +63,7 @@ const showPassword = ref(false);
                 >
                     Welcome back
                 </h2>
-                <p
-                    class="mb-5 text-sm text-slate-500 dark:text-slate-400"
-                >
+                <p class="mb-5 text-sm text-slate-500 dark:text-slate-400">
                     Sign in to your account to continue
                 </p>
 
@@ -146,10 +144,7 @@ const showPassword = ref(false);
                             class="absolute top-0 right-0 flex h-11 w-11 items-center justify-center text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300"
                             @click="showPassword = !showPassword"
                         >
-                            <EyeOffIcon
-                                v-if="showPassword"
-                                class="h-4 w-4"
-                            />
+                            <EyeOffIcon v-if="showPassword" class="h-4 w-4" />
                             <EyeIcon v-else class="h-4 w-4" />
                         </button>
                     </div>
@@ -162,11 +157,7 @@ const showPassword = ref(false);
                         for="remember"
                         class="flex cursor-pointer items-center gap-2 text-sm text-slate-600 dark:text-slate-400"
                     >
-                        <Checkbox
-                            id="remember"
-                            name="remember"
-                            :tabindex="3"
-                        />
+                        <Checkbox id="remember" name="remember" :tabindex="3" />
                         Remember me
                     </label>
                     <TextLink

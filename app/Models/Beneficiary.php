@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Beneficiary extends Model
 {
@@ -38,8 +39,6 @@ class Beneficiary extends Model
         'mother_middle_name',
         'mother_birth_date',
         'living_with_siblings',
-        'siblings_count',
-        'siblings',
         'living_with_spouse',
         'spouse_last_name',
         'spouse_first_name',
@@ -47,11 +46,7 @@ class Beneficiary extends Model
         'spouse_extension_name',
         'spouse_birth_date',
         'living_with_children',
-        'children_count',
-        'children',
         'living_with_relatives',
-        'relatives_count',
-        'relatives',
     ];
 
     protected function casts(): array
@@ -69,9 +64,21 @@ class Beneficiary extends Model
             'living_with_children' => 'boolean',
             'living_with_relatives' => 'boolean',
             'applicable_sector' => 'array',
-            'siblings' => 'array',
-            'children' => 'array',
-            'relatives' => 'array',
         ];
+    }
+
+    public function siblings(): HasMany
+    {
+        return $this->hasMany(BeneficiarySibling::class);
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(BeneficiaryChild::class);
+    }
+
+    public function relatives(): HasMany
+    {
+        return $this->hasMany(BeneficiaryRelative::class);
     }
 }

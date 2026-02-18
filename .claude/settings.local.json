@@ -27,7 +27,10 @@
       "mcp__laravel-boost__get-absolute-url",
       "Bash(php artisan make:command:*)",
       "Bash(php artisan list:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "mcp__laravel-boost__database-query",
+      "Bash(node -e:*)",
+      "Bash(npm run format:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

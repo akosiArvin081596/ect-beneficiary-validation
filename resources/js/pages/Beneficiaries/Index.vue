@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { useDebounceFn } from '@vueuse/core';
 import { ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useOfflineQueue } from '@/composables/useOfflineQueue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { index, create } from '@/routes/beneficiaries';
@@ -28,8 +30,9 @@ interface PaginatedBeneficiaries {
     };
 }
 
-defineProps<{
+const props = defineProps<{
     beneficiaries: PaginatedBeneficiaries;
+    filters: { search: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -52,6 +55,21 @@ function formatDate(dateStr: string): string {
         day: 'numeric',
     });
 }
+
+// ── Search ──────────────────────────────────────────────────────────────────
+const search = ref(props.filters.search);
+
+const performSearch = useDebounceFn(() => {
+    router.get(index().url, search.value ? { search: search.value } : {}, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    });
+}, 300);
+
+watch(search, () => {
+    performSearch();
+});
 
 // ── Offline queue ────────────────────────────────────────────────────────────
 const {
@@ -95,6 +113,14 @@ watch(lastSyncMessage, (msg) => {
                 </Button>
             </div>
 
+            <!-- Search -->
+            <Input
+                v-model="search"
+                type="text"
+                placeholder="Search by name, municipality, or barangay..."
+                class="max-w-sm"
+            />
+
             <!-- Offline queue status bar -->
             <div
                 v-if="pendingCount > 0 || failedCount > 0"
@@ -130,7 +156,7 @@ watch(lastSyncMessage, (msg) => {
                         @click="syncAll"
                         :disabled="isSyncing || pendingCount === 0"
                     >
-                        {{ isSyncing ? 'Syncing…' : 'Sync Now' }}
+                        {{ isSyncing ? 'Syncing...' : 'Sync Now' }}
                     </Button>
                 </div>
             </div>
@@ -162,7 +188,14 @@ watch(lastSyncMessage, (msg) => {
                                 colspan="5"
                                 class="px-4 py-8 text-center text-muted-foreground"
                             >
-                                No beneficiaries recorded yet.
+                                <template v-if="search">
+                                    No beneficiaries found matching "{{
+                                        search
+                                    }}".
+                                </template>
+                                <template v-else>
+                                    No beneficiaries recorded yet.
+                                </template>
                             </td>
                         </tr>
                         <tr

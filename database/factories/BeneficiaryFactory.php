@@ -2,6 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\BeneficiaryChild;
+use App\Models\BeneficiaryRelative;
+use App\Models\BeneficiarySibling;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -13,46 +16,7 @@ class BeneficiaryFactory extends Factory
     {
         $livingWithFather = fake()->boolean(60);
         $livingWithMother = fake()->boolean(60);
-        $livingWithSiblings = fake()->boolean(50);
         $livingWithSpouse = fake()->boolean(40);
-        $livingWithChildren = fake()->boolean(30);
-        $livingWithRelatives = fake()->boolean(20);
-
-        $siblingsCount = $livingWithSiblings ? fake()->numberBetween(1, 5) : 0;
-        $childrenCount = $livingWithChildren ? fake()->numberBetween(1, 4) : 0;
-        $relativesCount = $livingWithRelatives ? fake()->numberBetween(1, 3) : 0;
-
-        $siblings = [];
-        for ($i = 0; $i < $siblingsCount; $i++) {
-            $siblings[] = [
-                'last_name' => fake()->lastName(),
-                'first_name' => fake()->firstName(),
-                'middle_name' => fake()->lastName(),
-                'birth_date' => fake()->dateTimeBetween('-60 years', '-1 year')->format('Y-m-d'),
-            ];
-        }
-
-        $children = [];
-        for ($i = 0; $i < $childrenCount; $i++) {
-            $children[] = [
-                'last_name' => fake()->lastName(),
-                'first_name' => fake()->firstName(),
-                'middle_name' => fake()->lastName(),
-                'birth_date' => fake()->dateTimeBetween('-50 years', '-18 years')->format('Y-m-d'),
-            ];
-        }
-
-        $relatives = [];
-        $relationships = ['Uncle', 'Aunt', 'Cousin', 'Nephew', 'Niece', 'Grandparent'];
-        for ($i = 0; $i < $relativesCount; $i++) {
-            $relatives[] = [
-                'last_name' => fake()->lastName(),
-                'first_name' => fake()->firstName(),
-                'middle_name' => fake()->lastName(),
-                'birth_date' => fake()->dateTimeBetween('-70 years', '-1 year')->format('Y-m-d'),
-                'relationship' => fake()->randomElement($relationships),
-            ];
-        }
 
         return [
             'timestamp' => fake()->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),
@@ -84,9 +48,7 @@ class BeneficiaryFactory extends Factory
             'mother_middle_name' => $livingWithMother ? fake()->lastName() : null,
             'mother_birth_date' => $livingWithMother ? fake()->dateTimeBetween('-90 years', '-35 years')->format('Y-m-d') : null,
 
-            'living_with_siblings' => $livingWithSiblings,
-            'siblings_count' => $siblingsCount,
-            'siblings' => $livingWithSiblings ? $siblings : null,
+            'living_with_siblings' => false,
 
             'living_with_spouse' => $livingWithSpouse,
             'spouse_last_name' => $livingWithSpouse ? fake()->lastName() : null,
@@ -95,13 +57,31 @@ class BeneficiaryFactory extends Factory
             'spouse_extension_name' => $livingWithSpouse ? fake()->optional(0.1)->randomElement(['Jr.', 'Sr.', 'II', 'III']) : null,
             'spouse_birth_date' => $livingWithSpouse ? fake()->dateTimeBetween('-70 years', '-18 years')->format('Y-m-d') : null,
 
-            'living_with_children' => $livingWithChildren,
-            'children_count' => $childrenCount,
-            'children' => $livingWithChildren ? $children : null,
-
-            'living_with_relatives' => $livingWithRelatives,
-            'relatives_count' => $relativesCount,
-            'relatives' => $livingWithRelatives ? $relatives : null,
+            'living_with_children' => false,
+            'living_with_relatives' => false,
         ];
+    }
+
+    public function withSiblings(int $count = 2): static
+    {
+        return $this->has(BeneficiarySibling::factory()->count($count), 'siblings')
+            ->state(['living_with_siblings' => true]);
+    }
+
+    public function withChildren(int $count = 2): static
+    {
+        return $this->has(BeneficiaryChild::factory()->count($count), 'children')
+            ->state(['living_with_children' => true]);
+    }
+
+    public function withRelatives(int $count = 2): static
+    {
+        return $this->has(BeneficiaryRelative::factory()->count($count), 'relatives')
+            ->state(['living_with_relatives' => true]);
+    }
+
+    public function withAllFamily(): static
+    {
+        return $this->withSiblings()->withChildren()->withRelatives();
     }
 }
