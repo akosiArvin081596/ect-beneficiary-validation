@@ -37,8 +37,12 @@ withDefaults(
         <div class="flex items-center gap-2">
             <button
                 @click="toggleTheme"
-                class="text-muted-foreground hover:text-foreground hover:bg-accent rounded-md p-2 transition-colors"
-                :aria-label="resolvedAppearance === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+                class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                :aria-label="
+                    resolvedAppearance === 'dark'
+                        ? 'Switch to light mode'
+                        : 'Switch to dark mode'
+                "
             >
                 <Sun v-if="resolvedAppearance === 'dark'" class="size-4" />
                 <Moon v-else class="size-4" />
@@ -52,7 +56,11 @@ withDefaults(
                 leave-from-class="opacity-100 scale-100"
                 leave-to-class="opacity-0 scale-95"
             >
-                <Badge v-if="!isOnline" variant="destructive" class="gap-1 text-xs">
+                <Badge
+                    v-if="!isOnline"
+                    variant="destructive"
+                    class="gap-1 text-xs"
+                >
                     <WifiOff class="size-3" />
                     Offline
                 </Badge>

@@ -15,7 +15,10 @@ const SYNC_URL = '/beneficiaries/offline-sync';
 // ── module-level state ──────────────────────────────────────────────────────
 const queue = ref<OfflineQueueEntry[]>(load());
 const isSyncing = ref(false);
-const lastSyncMessage = ref<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+const lastSyncMessage = ref<{
+    text: string;
+    type: 'success' | 'error' | 'info';
+} | null>(null);
 
 export const isOnline = useOnline();
 
@@ -33,13 +36,17 @@ function persist() {
 }
 
 function updateEntry(id: string, patch: Partial<OfflineQueueEntry>) {
-    queue.value = queue.value.map((e) => (e.id === id ? { ...e, ...patch } : e));
+    queue.value = queue.value.map((e) =>
+        e.id === id ? { ...e, ...patch } : e,
+    );
     persist();
 }
 
 function firstError(body: { errors?: Record<string, string[]> }): string {
     const key = Object.keys(body?.errors ?? {})[0];
-    return key ? (body.errors![key][0] ?? 'Validation error') : 'Validation error';
+    return key
+        ? (body.errors![key][0] ?? 'Validation error')
+        : 'Validation error';
 }
 
 // ── syncAll at module level so the 'online' listener can reach it ────────────
@@ -49,7 +56,9 @@ async function syncAll(): Promise<void> {
     if (!pending.length) return;
 
     isSyncing.value = true;
-    const csrf = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
+    const csrf =
+        document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+            ?.content ?? '';
     let synced = 0;
 
     for (const entry of pending) {
@@ -70,9 +79,16 @@ async function syncAll(): Promise<void> {
                 synced++;
             } else if (res.status === 422) {
                 const body = await res.json();
-                updateEntry(entry.id, { status: 'failed', failureReason: firstError(body) });
+                updateEntry(entry.id, {
+                    status: 'failed',
+                    failureReason: firstError(body),
+                });
             } else if (res.status === 401 || res.status === 419) {
-                updateEntry(entry.id, { status: 'failed', failureReason: 'Session expired — refresh the page and retry.' });
+                updateEntry(entry.id, {
+                    status: 'failed',
+                    failureReason:
+                        'Session expired — refresh the page and retry.',
+                });
                 break;
             }
             // 5xx: leave pending, retry next time
@@ -82,7 +98,10 @@ async function syncAll(): Promise<void> {
     }
 
     if (synced > 0) {
-        lastSyncMessage.value = { text: `${synced} record(s) synced successfully.`, type: 'success' };
+        lastSyncMessage.value = {
+            text: `${synced} record(s) synced successfully.`,
+            type: 'success',
+        };
     }
     isSyncing.value = false;
 }
@@ -92,8 +111,12 @@ window.addEventListener('online', () => syncAll());
 
 // ── composable ──────────────────────────────────────────────────────────────
 export function useOfflineQueue() {
-    const pendingCount = computed(() => queue.value.filter((e) => e.status === 'pending').length);
-    const failedCount = computed(() => queue.value.filter((e) => e.status === 'failed').length);
+    const pendingCount = computed(
+        () => queue.value.filter((e) => e.status === 'pending').length,
+    );
+    const failedCount = computed(
+        () => queue.value.filter((e) => e.status === 'failed').length,
+    );
 
     function enqueue(data: Record<string, unknown>): void {
         queue.value = [
@@ -106,14 +129,30 @@ export function useOfflineQueue() {
             },
         ];
         persist();
-        lastSyncMessage.value = { text: 'Saved offline. Will sync when connected.', type: 'info' };
+        lastSyncMessage.value = {
+            text: 'Saved offline. Will sync when connected.',
+            type: 'info',
+        };
     }
 
     function retryFailed(): void {
-        queue.value = queue.value.map((e) => (e.status === 'failed' ? { ...e, status: 'pending', failureReason: undefined } : e));
+        queue.value = queue.value.map((e) =>
+            e.status === 'failed'
+                ? { ...e, status: 'pending', failureReason: undefined }
+                : e,
+        );
         persist();
         syncAll();
     }
 
-    return { queue, pendingCount, failedCount, isSyncing, lastSyncMessage, enqueue, syncAll, retryFailed };
+    return {
+        queue,
+        pendingCount,
+        failedCount,
+        isSyncing,
+        lastSyncMessage,
+        enqueue,
+        syncAll,
+        retryFailed,
+    };
 }

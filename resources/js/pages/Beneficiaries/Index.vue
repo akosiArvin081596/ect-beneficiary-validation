@@ -54,7 +54,14 @@ function formatDate(dateStr: string): string {
 }
 
 // ── Offline queue ────────────────────────────────────────────────────────────
-const { pendingCount, failedCount, isSyncing, lastSyncMessage, syncAll, retryFailed } = useOfflineQueue();
+const {
+    pendingCount,
+    failedCount,
+    isSyncing,
+    lastSyncMessage,
+    syncAll,
+    retryFailed,
+} = useOfflineQueue();
 
 // Reload list after sync completes
 watch(isSyncing, (syncing, was) => {
@@ -99,12 +106,30 @@ watch(lastSyncMessage, (msg) => {
                 "
             >
                 <span>
-                    <span v-if="pendingCount > 0">{{ pendingCount }} record(s) pending sync.</span>
-                    <span v-if="failedCount > 0" class="ml-2 text-red-700 dark:text-red-300">{{ failedCount }} failed (validation error).</span>
+                    <span v-if="pendingCount > 0"
+                        >{{ pendingCount }} record(s) pending sync.</span
+                    >
+                    <span
+                        v-if="failedCount > 0"
+                        class="ml-2 text-red-700 dark:text-red-300"
+                        >{{ failedCount }} failed (validation error).</span
+                    >
                 </span>
                 <div class="flex gap-2">
-                    <Button v-if="failedCount > 0" size="sm" variant="outline" @click="retryFailed" :disabled="isSyncing">Retry Failed</Button>
-                    <Button size="sm" variant="outline" @click="syncAll" :disabled="isSyncing || pendingCount === 0">
+                    <Button
+                        v-if="failedCount > 0"
+                        size="sm"
+                        variant="outline"
+                        @click="retryFailed"
+                        :disabled="isSyncing"
+                        >Retry Failed</Button
+                    >
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        @click="syncAll"
+                        :disabled="isSyncing || pendingCount === 0"
+                    >
                         {{ isSyncing ? 'Syncing…' : 'Sync Now' }}
                     </Button>
                 </div>
@@ -113,47 +138,72 @@ watch(lastSyncMessage, (msg) => {
             <div class="overflow-hidden rounded-xl border">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="bg-muted/50 border-b">
-                            <th class="px-4 py-3 text-left font-medium">Full Name</th>
-                            <th class="px-4 py-3 text-left font-medium">Municipality</th>
-                            <th class="px-4 py-3 text-left font-medium">Barangay</th>
-                            <th class="px-4 py-3 text-left font-medium">Civil Status</th>
-                            <th class="px-4 py-3 text-left font-medium">Date Added</th>
+                        <tr class="border-b bg-muted/50">
+                            <th class="px-4 py-3 text-left font-medium">
+                                Full Name
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Municipality
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Barangay
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Civil Status
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Date Added
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-if="beneficiaries.data.length === 0">
-                            <td colspan="5" class="text-muted-foreground px-4 py-8 text-center">
+                            <td
+                                colspan="5"
+                                class="px-4 py-8 text-center text-muted-foreground"
+                            >
                                 No beneficiaries recorded yet.
                             </td>
                         </tr>
                         <tr
                             v-for="b in beneficiaries.data"
                             :key="b.id"
-                            class="hover:bg-muted/30 border-b last:border-0"
+                            class="border-b last:border-0 hover:bg-muted/30"
                         >
-                            <td class="px-4 py-3 font-medium">{{ fullName(b) }}</td>
+                            <td class="px-4 py-3 font-medium">
+                                {{ fullName(b) }}
+                            </td>
                             <td class="px-4 py-3">{{ b.municipality }}</td>
                             <td class="px-4 py-3">{{ b.barangay }}</td>
                             <td class="px-4 py-3">{{ b.civil_status }}</td>
-                            <td class="px-4 py-3">{{ formatDate(b.created_at) }}</td>
+                            <td class="px-4 py-3">
+                                {{ formatDate(b.created_at) }}
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <!-- Pagination -->
-            <div v-if="beneficiaries.links.length > 3" class="flex flex-wrap gap-1">
+            <div
+                v-if="beneficiaries.links.length > 3"
+                class="flex flex-wrap gap-1"
+            >
                 <template v-for="link in beneficiaries.links" :key="link.label">
                     <Link
                         v-if="link.url"
                         :href="link.url"
                         class="rounded border px-3 py-1 text-sm transition-colors"
-                        :class="link.active ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted'"
-                    ><span v-html="link.label" /></Link>
+                        :class="
+                            link.active
+                                ? 'border-primary bg-primary text-primary-foreground'
+                                : 'hover:bg-muted'
+                        "
+                        ><span v-html="link.label"
+                    /></Link>
                     <span
                         v-else
-                        class="text-muted-foreground rounded border px-3 py-1 text-sm opacity-50"
+                        class="rounded border px-3 py-1 text-sm text-muted-foreground opacity-50"
                         v-html="link.label"
                     />
                 </template>
@@ -171,11 +221,14 @@ watch(lastSyncMessage, (msg) => {
         >
             <div
                 v-if="toastVisible"
-                class="fixed bottom-6 right-6 z-50 max-w-sm rounded-lg border px-4 py-3 text-sm shadow-lg"
+                class="fixed right-6 bottom-6 z-50 max-w-sm rounded-lg border px-4 py-3 text-sm shadow-lg"
                 :class="{
-                    'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200': toastType === 'success',
-                    'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200': toastType === 'error',
-                    'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200': toastType === 'info',
+                    'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200':
+                        toastType === 'success',
+                    'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200':
+                        toastType === 'error',
+                    'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200':
+                        toastType === 'info',
                 }"
             >
                 {{ toastMessage }}
