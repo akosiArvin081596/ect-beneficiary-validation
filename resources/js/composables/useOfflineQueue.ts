@@ -126,6 +126,11 @@ async function syncAll(): Promise<void> {
 // register 'online' listener once — syncAll is now in scope
 window.addEventListener('online', () => syncAll());
 
+// auto-sync on app load if we're already online with pending entries
+if (isOnline.value && queue.value.some((e) => e.status === 'pending')) {
+    queueMicrotask(() => syncAll());
+}
+
 // ── composable ──────────────────────────────────────────────────────────────
 export function useOfflineQueue() {
     const pendingCount = computed(

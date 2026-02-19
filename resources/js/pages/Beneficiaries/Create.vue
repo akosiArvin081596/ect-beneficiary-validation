@@ -377,9 +377,6 @@ function validateOffline(): boolean {
     if (!form.classify_extent_of_damaged_house)
         errors.classify_extent_of_damaged_house =
             'The extent of damaged house is required.';
-    if (!form.nhts_pr_classification)
-        errors.nhts_pr_classification =
-            'The NHTS-PR classification is required.';
     if (!form.civil_status)
         errors.civil_status = 'The civil status is required.';
 

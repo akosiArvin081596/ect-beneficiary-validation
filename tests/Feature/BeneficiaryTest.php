@@ -296,3 +296,40 @@ test('index passes filters prop', function () {
             ->where('filters.search', 'test')
         );
 });
+
+// ── Offline sync edge-case tests ────────────────────────────────────────────
+
+test('offline sync accepts null nhts_pr_classification', function () {
+    $user = User::factory()->create();
+
+    $data = validBeneficiaryData(['nhts_pr_classification' => null]);
+
+    $this->actingAs($user)
+        ->postJson(route('beneficiaries.offline-sync'), $data)
+        ->assertCreated()
+        ->assertJson(['synced' => true]);
+
+    $this->assertDatabaseHas('beneficiaries', [
+        'last_name' => 'Santos',
+        'first_name' => 'Juan',
+        'nhts_pr_classification' => null,
+    ]);
+});
+
+test('offline sync rejects invalid nhts_pr_classification value', function () {
+    $user = User::factory()->create();
+
+    $data = validBeneficiaryData(['nhts_pr_classification' => 'InvalidValue']);
+
+    $this->actingAs($user)
+        ->postJson(route('beneficiaries.offline-sync'), $data)
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('nhts_pr_classification');
+});
+
+test('offline sync returns 401 for unauthenticated requests', function () {
+    $data = validBeneficiaryData();
+
+    $this->postJson(route('beneficiaries.offline-sync'), $data)
+        ->assertUnauthorized();
+});
