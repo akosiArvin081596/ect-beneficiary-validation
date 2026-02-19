@@ -10,6 +10,10 @@ class PsgcCaragaSeeder extends Seeder
 {
     public function run(): void
     {
+        if (Province::count() > 0) {
+            return;
+        }
+
         $data = require database_path('seeders/data/caraga-psgc.php');
 
         DB::transaction(function () use ($data) {
