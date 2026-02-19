@@ -23,7 +23,7 @@ class BeneficiaryFactory extends Factory
             'province' => fake()->randomElement(['Agusan del Norte', 'Agusan del Sur', 'Dinagat Islands', 'Surigao del Norte', 'Surigao del Sur']),
             'municipality' => fake()->city(),
             'barangay' => 'Barangay '.fake()->numberBetween(1, 50),
-            'purok' => fake()->optional(0.7)->randomElement(['Purok 1', 'Purok 2', 'Purok 3', 'Purok 4', 'Purok 5']),
+            'purok' => fake()->randomElement(['Purok 1', 'Purok 2', 'Purok 3', 'Purok 4', 'Purok 5']),
             'last_name' => fake()->lastName(),
             'first_name' => fake()->firstName(),
             'middle_name' => fake()->optional(0.8)->lastName(),

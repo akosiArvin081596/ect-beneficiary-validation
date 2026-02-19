@@ -125,7 +125,7 @@ test('missing required fields returns validation errors', function () {
 
     $this->actingAs($user)
         ->post(route('beneficiaries.store'), [])
-        ->assertSessionHasErrors(['last_name', 'first_name', 'province', 'municipality', 'barangay', 'sex', 'birth_date', 'civil_status']);
+        ->assertSessionHasErrors(['last_name', 'first_name', 'province', 'municipality', 'barangay', 'purok', 'sex', 'birth_date', 'civil_status']);
 });
 
 test('factory-created beneficiaries appear on index page', function () {

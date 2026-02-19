@@ -27,7 +27,7 @@ class StoreBeneficiaryRequest extends FormRequest
             'province' => ['required', 'string', 'max:255'],
             'municipality' => ['required', 'string', 'max:255'],
             'barangay' => ['required', 'string', 'max:255'],
-            'purok' => ['nullable', 'string', 'max:255'],
+            'purok' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],

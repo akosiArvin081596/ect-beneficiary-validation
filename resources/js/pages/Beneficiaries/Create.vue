@@ -353,6 +353,7 @@ function validateOffline(): boolean {
     if (!form.municipality)
         errors.municipality = 'The municipality is required.';
     if (!form.barangay) errors.barangay = 'The barangay is required.';
+    if (!form.purok) errors.purok = 'The purok is required.';
     if (!form.last_name) errors.last_name = 'The last name is required.';
     if (!form.first_name) errors.first_name = 'The first name is required.';
     if (!form.sex) errors.sex = 'The sex field is required.';
@@ -634,7 +635,7 @@ function submit() {
                             <Input
                                 id="purok"
                                 v-model="form.purok"
-                                placeholder="Purok (optional)"
+                                placeholder="Purok"
                             />
                             <InputError :message="err('purok')" />
                         </div>
