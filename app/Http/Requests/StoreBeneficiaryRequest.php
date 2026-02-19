@@ -34,7 +34,7 @@ class StoreBeneficiaryRequest extends FormRequest
             'extension_name' => ['nullable', 'string', 'max:50'],
             'sex' => ['required', 'in:Male,Female'],
             'birth_date' => ['required', 'date', 'before:today'],
-            'classify_extent_of_damaged_house' => ['required', 'in:Totally Damaged,Partially Damaged'],
+            'classify_extent_of_damaged_house' => ['required', 'in:Totally Damaged (Severely),Partially Damaged (Slightly)'],
             'nhts_pr_classification' => ['required', 'in:Poor,Near Poor,Not Poor'],
             'applicable_sector' => ['nullable', 'array'],
             'applicable_sector.*' => ['string', 'max:255'],

@@ -151,11 +151,22 @@ watch(lastSyncMessage, (msg) => {
                             stroke="currentColor"
                             stroke-width="2"
                         >
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M9 5l7 7-7 7"
+                            />
                         </svg>
                         <span>
-                            <span v-if="pendingCount > 0">{{ pendingCount }} record(s) pending sync.</span>
-                            <span v-if="failedCount > 0" class="ml-2 text-red-700 dark:text-red-300">{{ failedCount }} failed.</span>
+                            <span v-if="pendingCount > 0"
+                                >{{ pendingCount }} record(s) pending
+                                sync.</span
+                            >
+                            <span
+                                v-if="failedCount > 0"
+                                class="ml-2 text-red-700 dark:text-red-300"
+                                >{{ failedCount }} failed.</span
+                            >
                         </span>
                     </button>
                     <div class="flex gap-2">
@@ -165,7 +176,8 @@ watch(lastSyncMessage, (msg) => {
                             variant="outline"
                             @click="retryFailed"
                             :disabled="isSyncing"
-                        >Retry Failed</Button>
+                            >Retry Failed</Button
+                        >
                         <Button
                             size="sm"
                             variant="outline"
@@ -182,11 +194,21 @@ watch(lastSyncMessage, (msg) => {
                     <table class="w-full text-xs">
                         <thead>
                             <tr class="border-b">
-                                <th class="px-2 py-2 text-left font-medium">Name</th>
-                                <th class="px-2 py-2 text-left font-medium">Location</th>
-                                <th class="px-2 py-2 text-left font-medium">Queued</th>
-                                <th class="px-2 py-2 text-left font-medium">Status</th>
-                                <th class="px-2 py-2 text-right font-medium">Actions</th>
+                                <th class="px-2 py-2 text-left font-medium">
+                                    Name
+                                </th>
+                                <th class="px-2 py-2 text-left font-medium">
+                                    Location
+                                </th>
+                                <th class="px-2 py-2 text-left font-medium">
+                                    Queued
+                                </th>
+                                <th class="px-2 py-2 text-left font-medium">
+                                    Status
+                                </th>
+                                <th class="px-2 py-2 text-right font-medium">
+                                    Actions
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -196,26 +218,46 @@ watch(lastSyncMessage, (msg) => {
                                 class="border-b last:border-0"
                             >
                                 <td class="px-2 py-2">
-                                    {{ (entry.data.last_name as string) || '—' }},
-                                    {{ (entry.data.first_name as string) || '' }}
+                                    {{
+                                        (entry.data.last_name as string) || '—'
+                                    }},
+                                    {{
+                                        (entry.data.first_name as string) || ''
+                                    }}
                                 </td>
                                 <td class="px-2 py-2">
-                                    {{ (entry.data.municipality as string) || '—' }} /
+                                    {{
+                                        (entry.data.municipality as string) ||
+                                        '—'
+                                    }}
+                                    /
                                     {{ (entry.data.barangay as string) || '—' }}
                                 </td>
                                 <td class="px-2 py-2">
-                                    {{ new Date(entry.queuedAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
+                                    {{
+                                        new Date(entry.queuedAt).toLocaleString(
+                                            'en-PH',
+                                            {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                            },
+                                        )
+                                    }}
                                 </td>
                                 <td class="px-2 py-2">
                                     <span
                                         v-if="entry.status === 'pending'"
                                         class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                                    >Pending</span>
+                                        >Pending</span
+                                    >
                                     <span
                                         v-else
                                         class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900 dark:text-red-300"
                                         :title="entry.failureReason"
-                                    >Failed</span>
+                                        >Failed</span
+                                    >
                                 </td>
                                 <td class="px-2 py-2 text-right">
                                     <div class="flex justify-end gap-1">
@@ -226,13 +268,15 @@ watch(lastSyncMessage, (msg) => {
                                             class="h-7 px-2 text-xs"
                                             @click="retrySingle(entry.id)"
                                             :disabled="isSyncing"
-                                        >Retry</Button>
+                                            >Retry</Button
+                                        >
                                         <Button
                                             size="sm"
                                             variant="ghost"
                                             class="h-7 px-2 text-xs text-red-600 hover:text-red-700 dark:text-red-400"
                                             @click="removeEntry(entry.id)"
-                                        >Remove</Button>
+                                            >Remove</Button
+                                        >
                                     </div>
                                 </td>
                             </tr>

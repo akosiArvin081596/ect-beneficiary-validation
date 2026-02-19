@@ -17,7 +17,7 @@ function validBeneficiaryData(array $overrides = []): array
         'extension_name' => null,
         'sex' => 'Male',
         'birth_date' => '1990-06-15',
-        'classify_extent_of_damaged_house' => 'Totally Damaged',
+        'classify_extent_of_damaged_house' => 'Totally Damaged (Severely)',
         'nhts_pr_classification' => 'Poor',
         'applicable_sector' => [],
         'civil_status' => 'Single',
@@ -61,7 +61,10 @@ test('authenticated users can visit beneficiaries create', function () {
     $this->actingAs($user)
         ->get(route('beneficiaries.create'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('Beneficiaries/Create'));
+        ->assertInertia(fn ($page) => $page
+            ->component('Beneficiaries/Create')
+            ->has('locations')
+        );
 });
 
 test('valid submission stores beneficiary and redirects to index', function () {

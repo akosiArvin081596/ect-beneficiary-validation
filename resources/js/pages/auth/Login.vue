@@ -98,6 +98,7 @@ const showPassword = ref(false);
                             :tabindex="1"
                             autocomplete="email"
                             placeholder="you@example.com"
+                            value="test@example.com"
                             class="h-11 w-full border bg-slate-50 pr-4 pl-14 text-sm text-slate-900 transition-all focus:bg-white focus:ring-2 focus:outline-none dark:bg-slate-950 dark:text-white dark:focus:bg-slate-900"
                             :class="
                                 errors.email
@@ -131,6 +132,7 @@ const showPassword = ref(false);
                             :tabindex="2"
                             autocomplete="current-password"
                             placeholder="Enter your password"
+                            value="password"
                             class="h-11 w-full border bg-slate-50 pr-11 pl-14 text-sm text-slate-900 transition-all focus:bg-white focus:ring-2 focus:outline-none dark:bg-slate-950 dark:text-white dark:focus:bg-slate-900"
                             :class="
                                 errors.password

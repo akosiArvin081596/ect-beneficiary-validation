@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import { onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,20 @@ import { isOnline, useOfflineQueue } from '@/composables/useOfflineQueue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { index, store } from '@/routes/beneficiaries';
 import { type BreadcrumbItem } from '@/types';
+
+interface MunicipalityOption {
+    name: string;
+    barangays: string[];
+}
+
+interface ProvinceOption {
+    name: string;
+    municipalities: MunicipalityOption[];
+}
+
+const props = defineProps<{
+    locations: ProvinceOption[];
+}>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Beneficiaries', href: index().url },
@@ -110,6 +124,40 @@ const form = useForm({
     relatives_count: 0,
     relatives: [] as RelativeEntry[],
 });
+
+// ── Cascading location selects ───────────────────────────────────────────────
+const filteredMunicipalities = computed(() => {
+    if (!form.province) return [];
+    const province = props.locations.find((p) => p.name === form.province);
+    return province ? province.municipalities : [];
+});
+
+const filteredBarangays = computed(() => {
+    if (!form.municipality) return [];
+    const municipality = filteredMunicipalities.value.find(
+        (m) => m.name === form.municipality,
+    );
+    return municipality ? municipality.barangays : [];
+});
+
+let pauseLocationWatchers = false;
+
+watch(
+    () => form.province,
+    () => {
+        if (pauseLocationWatchers) return;
+        form.municipality = '';
+        form.barangay = '';
+    },
+);
+
+watch(
+    () => form.municipality,
+    () => {
+        if (pauseLocationWatchers) return;
+        form.barangay = '';
+    },
+);
 
 // Clear fields when toggled off
 watch(
@@ -239,10 +287,15 @@ const showDraftBanner = ref(hasDraft.value);
 
 function handleRestoreDraft() {
     const saved = restoreDraft();
-    if (saved)
+    if (saved) {
+        pauseLocationWatchers = true;
         Object.entries(saved).forEach(([k, v]) => {
             if (k in form) (form as unknown as Record<string, unknown>)[k] = v;
         });
+        nextTick(() => {
+            pauseLocationWatchers = false;
+        });
+    }
     showDraftBanner.value = false;
     clearDraft();
 }
@@ -294,91 +347,135 @@ watch(lastSyncMessage, (msg) => {
 function validateOffline(): boolean {
     const errors: Record<string, string> = {};
 
-    if (!form.timestamp) errors.timestamp = 'The date of interview is required.';
+    if (!form.timestamp)
+        errors.timestamp = 'The date of interview is required.';
     if (!form.province) errors.province = 'The province is required.';
-    if (!form.municipality) errors.municipality = 'The municipality is required.';
+    if (!form.municipality)
+        errors.municipality = 'The municipality is required.';
     if (!form.barangay) errors.barangay = 'The barangay is required.';
     if (!form.last_name) errors.last_name = 'The last name is required.';
     if (!form.first_name) errors.first_name = 'The first name is required.';
     if (!form.sex) errors.sex = 'The sex field is required.';
     if (!form.birth_date) {
         errors.birth_date = 'The birth date is required.';
-    } else if (new Date(form.birth_date) >= new Date(new Date().toDateString())) {
+    } else if (
+        new Date(form.birth_date) >= new Date(new Date().toDateString())
+    ) {
         errors.birth_date = 'The birth date must be before today.';
     }
-    if (!form.classify_extent_of_damaged_house) errors.classify_extent_of_damaged_house = 'The extent of damaged house is required.';
-    if (!form.nhts_pr_classification) errors.nhts_pr_classification = 'The NHTS-PR classification is required.';
-    if (!form.civil_status) errors.civil_status = 'The civil status is required.';
+    if (!form.classify_extent_of_damaged_house)
+        errors.classify_extent_of_damaged_house =
+            'The extent of damaged house is required.';
+    if (!form.nhts_pr_classification)
+        errors.nhts_pr_classification =
+            'The NHTS-PR classification is required.';
+    if (!form.civil_status)
+        errors.civil_status = 'The civil status is required.';
 
     const today = new Date(new Date().toDateString());
 
     if (form.living_with_father) {
-        if (!form.father_last_name) errors.father_last_name = "Father's last name is required when living with father.";
-        if (!form.father_first_name) errors.father_first_name = "Father's first name is required when living with father.";
+        if (!form.father_last_name)
+            errors.father_last_name =
+                "Father's last name is required when living with father.";
+        if (!form.father_first_name)
+            errors.father_first_name =
+                "Father's first name is required when living with father.";
         if (!form.father_birth_date) {
-            errors.father_birth_date = "Father's birth date is required when living with father.";
+            errors.father_birth_date =
+                "Father's birth date is required when living with father.";
         } else if (new Date(form.father_birth_date) >= today) {
-            errors.father_birth_date = "Father's birth date must be before today.";
+            errors.father_birth_date =
+                "Father's birth date must be before today.";
         }
     }
 
     if (form.living_with_mother) {
-        if (!form.mother_last_name) errors.mother_last_name = "Mother's last name is required when living with mother.";
-        if (!form.mother_first_name) errors.mother_first_name = "Mother's first name is required when living with mother.";
+        if (!form.mother_last_name)
+            errors.mother_last_name =
+                "Mother's last name is required when living with mother.";
+        if (!form.mother_first_name)
+            errors.mother_first_name =
+                "Mother's first name is required when living with mother.";
         if (!form.mother_birth_date) {
-            errors.mother_birth_date = "Mother's birth date is required when living with mother.";
+            errors.mother_birth_date =
+                "Mother's birth date is required when living with mother.";
         } else if (new Date(form.mother_birth_date) >= today) {
-            errors.mother_birth_date = "Mother's birth date must be before today.";
+            errors.mother_birth_date =
+                "Mother's birth date must be before today.";
         }
     }
 
     if (form.living_with_siblings) {
-        if (!form.siblings_count || form.siblings_count < 1) errors.siblings_count = 'Number of siblings is required when living with siblings.';
+        if (!form.siblings_count || form.siblings_count < 1)
+            errors.siblings_count =
+                'Number of siblings is required when living with siblings.';
         form.siblings.forEach((s, i) => {
-            if (!s.last_name) errors[`siblings.${i}.last_name`] = 'Last name is required.';
-            if (!s.first_name) errors[`siblings.${i}.first_name`] = 'First name is required.';
+            if (!s.last_name)
+                errors[`siblings.${i}.last_name`] = 'Last name is required.';
+            if (!s.first_name)
+                errors[`siblings.${i}.first_name`] = 'First name is required.';
             if (!s.birth_date) {
                 errors[`siblings.${i}.birth_date`] = 'Birth date is required.';
             } else if (new Date(s.birth_date) >= today) {
-                errors[`siblings.${i}.birth_date`] = 'Birth date must be before today.';
+                errors[`siblings.${i}.birth_date`] =
+                    'Birth date must be before today.';
             }
         });
     }
 
     if (form.living_with_spouse) {
-        if (!form.spouse_last_name) errors.spouse_last_name = "Spouse's last name is required when living with spouse.";
-        if (!form.spouse_first_name) errors.spouse_first_name = "Spouse's first name is required when living with spouse.";
+        if (!form.spouse_last_name)
+            errors.spouse_last_name =
+                "Spouse's last name is required when living with spouse.";
+        if (!form.spouse_first_name)
+            errors.spouse_first_name =
+                "Spouse's first name is required when living with spouse.";
         if (!form.spouse_birth_date) {
-            errors.spouse_birth_date = "Spouse's birth date is required when living with spouse.";
+            errors.spouse_birth_date =
+                "Spouse's birth date is required when living with spouse.";
         } else if (new Date(form.spouse_birth_date) >= today) {
-            errors.spouse_birth_date = "Spouse's birth date must be before today.";
+            errors.spouse_birth_date =
+                "Spouse's birth date must be before today.";
         }
     }
 
     if (form.living_with_children) {
-        if (!form.children_count || form.children_count < 1) errors.children_count = 'Number of children is required when living with children.';
+        if (!form.children_count || form.children_count < 1)
+            errors.children_count =
+                'Number of children is required when living with children.';
         form.children.forEach((c, i) => {
-            if (!c.last_name) errors[`children.${i}.last_name`] = 'Last name is required.';
-            if (!c.first_name) errors[`children.${i}.first_name`] = 'First name is required.';
+            if (!c.last_name)
+                errors[`children.${i}.last_name`] = 'Last name is required.';
+            if (!c.first_name)
+                errors[`children.${i}.first_name`] = 'First name is required.';
             if (!c.birth_date) {
                 errors[`children.${i}.birth_date`] = 'Birth date is required.';
             } else if (new Date(c.birth_date) >= today) {
-                errors[`children.${i}.birth_date`] = 'Birth date must be before today.';
+                errors[`children.${i}.birth_date`] =
+                    'Birth date must be before today.';
             }
         });
     }
 
     if (form.living_with_relatives) {
-        if (!form.relatives_count || form.relatives_count < 1) errors.relatives_count = 'Number of relatives is required when living with other relatives.';
+        if (!form.relatives_count || form.relatives_count < 1)
+            errors.relatives_count =
+                'Number of relatives is required when living with other relatives.';
         form.relatives.forEach((r, i) => {
-            if (!r.last_name) errors[`relatives.${i}.last_name`] = 'Last name is required.';
-            if (!r.first_name) errors[`relatives.${i}.first_name`] = 'First name is required.';
+            if (!r.last_name)
+                errors[`relatives.${i}.last_name`] = 'Last name is required.';
+            if (!r.first_name)
+                errors[`relatives.${i}.first_name`] = 'First name is required.';
             if (!r.birth_date) {
                 errors[`relatives.${i}.birth_date`] = 'Birth date is required.';
             } else if (new Date(r.birth_date) >= today) {
-                errors[`relatives.${i}.birth_date`] = 'Birth date must be before today.';
+                errors[`relatives.${i}.birth_date`] =
+                    'Birth date must be before today.';
             }
-            if (!r.relationship) errors[`relatives.${i}.relationship`] = 'Relationship is required.';
+            if (!r.relationship)
+                errors[`relatives.${i}.relationship`] =
+                    'Relationship is required.';
         });
     }
 
@@ -399,10 +496,12 @@ function submit() {
         enqueue(form.data() as Record<string, unknown>);
         clearDraft();
         pauseDraftSave = true;
+        pauseLocationWatchers = true;
         form.reset();
         isSubmitting.value = false;
         setTimeout(() => {
             pauseDraftSave = false;
+            pauseLocationWatchers = false;
         }, 2000);
         return;
     }
@@ -470,29 +569,64 @@ function submit() {
                     >
                         <div class="space-y-1">
                             <Label for="province">Province</Label>
-                            <Input
+                            <select
                                 id="province"
                                 v-model="form.province"
-                                placeholder="Province"
-                            />
+                                :class="selectClass"
+                            >
+                                <option value="" disabled>
+                                    Select province...
+                                </option>
+                                <option
+                                    v-for="p in locations"
+                                    :key="p.name"
+                                    :value="p.name"
+                                >
+                                    {{ p.name }}
+                                </option>
+                            </select>
                             <InputError :message="err('province')" />
                         </div>
                         <div class="space-y-1">
                             <Label for="municipality">Municipality</Label>
-                            <Input
+                            <select
                                 id="municipality"
                                 v-model="form.municipality"
-                                placeholder="Municipality"
-                            />
+                                :class="selectClass"
+                                :disabled="!form.province"
+                            >
+                                <option value="" disabled>
+                                    Select municipality...
+                                </option>
+                                <option
+                                    v-for="m in filteredMunicipalities"
+                                    :key="m.name"
+                                    :value="m.name"
+                                >
+                                    {{ m.name }}
+                                </option>
+                            </select>
                             <InputError :message="err('municipality')" />
                         </div>
                         <div class="space-y-1">
                             <Label for="barangay">Barangay</Label>
-                            <Input
+                            <select
                                 id="barangay"
                                 v-model="form.barangay"
-                                placeholder="Barangay"
-                            />
+                                :class="selectClass"
+                                :disabled="!form.municipality"
+                            >
+                                <option value="" disabled>
+                                    Select barangay...
+                                </option>
+                                <option
+                                    v-for="b in filteredBarangays"
+                                    :key="b"
+                                    :value="b"
+                                >
+                                    {{ b }}
+                                </option>
+                            </select>
                             <InputError :message="err('barangay')" />
                         </div>
                         <div class="space-y-1">
@@ -603,11 +737,11 @@ function submit() {
                                 :class="selectClass"
                             >
                                 <option value="" disabled>Select...</option>
-                                <option value="Totally Damaged">
-                                    Totally Damaged
+                                <option value="Totally Damaged (Severely)">
+                                    Totally Damaged (Severely)
                                 </option>
-                                <option value="Partially Damaged">
-                                    Partially Damaged
+                                <option value="Partially Damaged (Slightly)">
+                                    Partially Damaged (Slightly)
                                 </option>
                             </select>
                             <InputError
@@ -1258,7 +1392,10 @@ function submit() {
                     <Button type="button" variant="outline" as-child>
                         <a :href="index().url">Cancel</a>
                     </Button>
-                    <Button type="submit" :disabled="form.processing || isSubmitting">
+                    <Button
+                        type="submit"
+                        :disabled="form.processing || isSubmitting"
+                    >
                         <template v-if="!isOnline">Save Offline</template>
                         <template v-else-if="form.processing"
                             >Saving...</template

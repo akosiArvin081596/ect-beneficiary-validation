@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBeneficiaryRequest;
 use App\Models\Beneficiary;
+use App\Models\Province;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,7 +42,30 @@ class BeneficiaryController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Beneficiaries/Create');
+        $locations = Province::with('municipalities.barangays')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Province $province) => [
+                'name' => $province->name,
+                'municipalities' => $province->municipalities
+                    ->sortBy('name')
+                    ->values()
+                    ->map(fn ($municipality) => [
+                        'name' => $municipality->name,
+                        'barangays' => $municipality->barangays
+                            ->sortBy('name')
+                            ->pluck('name')
+                            ->values()
+                            ->all(),
+                    ])
+                    ->all(),
+            ])
+            ->values()
+            ->all();
+
+        return Inertia::render('Beneficiaries/Create', [
+            'locations' => $locations,
+        ]);
     }
 
     public function store(StoreBeneficiaryRequest $request): RedirectResponse

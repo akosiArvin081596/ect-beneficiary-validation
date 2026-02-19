@@ -31,7 +31,8 @@
       "mcp__laravel-boost__database-query",
       "Bash(node -e:*)",
       "Bash(npm run format:*)",
-      "mcp__laravel-boost__search-docs"
+      "mcp__laravel-boost__search-docs",
+      "Bash(php artisan db:seed:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

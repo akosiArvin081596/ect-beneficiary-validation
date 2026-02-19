@@ -30,7 +30,7 @@ class BeneficiaryFactory extends Factory
             'extension_name' => fake()->optional(0.1)->randomElement(['Jr.', 'Sr.', 'II', 'III']),
             'sex' => fake()->randomElement(['Male', 'Female']),
             'birth_date' => fake()->dateTimeBetween('-80 years', '-18 years')->format('Y-m-d'),
-            'classify_extent_of_damaged_house' => fake()->randomElement(['Totally Damaged', 'Partially Damaged']),
+            'classify_extent_of_damaged_house' => fake()->randomElement(['Totally Damaged (Severely)', 'Partially Damaged (Slightly)']),
             'nhts_pr_classification' => fake()->randomElement(['Poor', 'Near Poor', 'Not Poor']),
             'applicable_sector' => fake()->optional(0.6)->randomElements(['Senior Citizen', 'PWD', 'Solo Parent', 'Indigenous People'], fake()->numberBetween(1, 2)),
             'civil_status' => fake()->randomElement(['Single', 'Married', 'Widowed', 'Separated', 'Annulled']),
