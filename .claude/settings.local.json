@@ -35,7 +35,10 @@
       "Bash(php artisan db:seed:*)",
       "Bash(xargs basename:*)",
       "Bash(xargs cat:*)",
-      "Bash(npx prettier:*)"
+      "Bash(npx prettier:*)",
+      "WebSearch",
+      "WebFetch(domain:www.philatlas.com)",
+      "WebFetch(domain:psa.gov.ph)"
     ]
   },
   "enableAllProjectMcpServers": true,
