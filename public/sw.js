@@ -97,6 +97,11 @@ async function networkFirst(request) {
 
             // Inertia XHR offline navigation → return cached JSON directly
             if (!isNavigate) {
+                if (isJSON) return cached;
+                // Cached response is HTML — extract Inertia page data and
+                // return it as JSON so Inertia can handle it correctly.
+                const json = await extractPageJson(cached.clone());
+                if (json) return json;
                 return cached;
             }
 
@@ -133,6 +138,32 @@ async function networkFirst(request) {
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Extract the Inertia page JSON from a cached HTML response.
+ * Parses the data-page attribute from the #app div and returns it as a
+ * proper JSON Response with X-Inertia header so Inertia treats it as valid.
+ */
+async function extractPageJson(cachedHtmlResponse) {
+    try {
+        const html = await cachedHtmlResponse.text();
+        const match = html.match(/data-page="([^"]*)"/);
+        if (!match) return null;
+
+        const decoded = match[1]
+            .replace(/&quot;/g, '"')
+            .replace(/&amp;/g, '&');
+
+        return new Response(decoded, {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Inertia': 'true',
+            },
+        });
+    } catch {
+        return null;
+    }
+}
 
 /**
  * Build an HTML page by injecting cached Inertia JSON into the app shell.

@@ -108,20 +108,31 @@ router.on('navigate', (event) => {
     const pages = ['/dashboard', '/beneficiaries', '/beneficiaries/create'];
 
     navigator.serviceWorker.ready.then(() => {
-        const fetches = pages
-            .filter((url) => url !== page.url)
-            .map((url) =>
-                fetch(url, {
-                    headers: {
-                        'X-Inertia': 'true',
-                        Accept: 'text/html, application/xhtml+xml',
-                    },
-                    credentials: 'same-origin',
-                }),
-            );
+        const fetches = pages.map((url) =>
+            fetch(url, {
+                headers: {
+                    'X-Inertia': 'true',
+                    Accept: 'text/html, application/xhtml+xml',
+                    ...(page.version
+                        ? { 'X-Inertia-Version': page.version }
+                        : {}),
+                },
+                credentials: 'same-origin',
+            }),
+        );
 
         Promise.all(fetches)
-            .then(() => showToast('Ready for offline use.', 'success'))
+            .then((responses) => {
+                const failed = responses.filter((r) => !r.ok);
+                if (failed.length === 0) {
+                    showToast('Ready for offline use.', 'success');
+                } else {
+                    showToast(
+                        'Some pages could not be cached for offline use.',
+                        'error',
+                    );
+                }
+            })
             .catch(() =>
                 showToast(
                     'Some pages could not be cached for offline use.',

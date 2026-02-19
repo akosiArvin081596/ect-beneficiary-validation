@@ -32,7 +32,10 @@
       "Bash(node -e:*)",
       "Bash(npm run format:*)",
       "mcp__laravel-boost__search-docs",
-      "Bash(php artisan db:seed:*)"
+      "Bash(php artisan db:seed:*)",
+      "Bash(xargs basename:*)",
+      "Bash(xargs cat:*)",
+      "Bash(npx prettier:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
