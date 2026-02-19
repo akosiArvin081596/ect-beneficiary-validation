@@ -32,7 +32,14 @@ function load(): OfflineQueueEntry[] {
 }
 
 function persist() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(queue.value));
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(queue.value));
+    } catch {
+        lastSyncMessage.value = {
+            text: 'Storage is full — could not save offline queue.',
+            type: 'error',
+        };
+    }
 }
 
 function updateEntry(id: string, patch: Partial<OfflineQueueEntry>) {
@@ -50,8 +57,13 @@ function firstError(body: { errors?: Record<string, string[]> }): string {
 }
 
 // ── syncAll at module level so the 'online' listener can reach it ────────────
+let syncRequested = false;
+
 async function syncAll(): Promise<void> {
-    if (isSyncing.value) return;
+    if (isSyncing.value) {
+        syncRequested = true;
+        return;
+    }
     const pending = queue.value.filter((e) => e.status === 'pending');
     if (!pending.length) return;
 
@@ -104,6 +116,11 @@ async function syncAll(): Promise<void> {
         };
     }
     isSyncing.value = false;
+
+    if (syncRequested) {
+        syncRequested = false;
+        syncAll();
+    }
 }
 
 // register 'online' listener once — syncAll is now in scope
@@ -145,6 +162,16 @@ export function useOfflineQueue() {
         syncAll();
     }
 
+    function removeEntry(id: string): void {
+        queue.value = queue.value.filter((e) => e.id !== id);
+        persist();
+    }
+
+    function retrySingle(id: string): void {
+        updateEntry(id, { status: 'pending', failureReason: undefined });
+        syncAll();
+    }
+
     return {
         queue,
         pendingCount,
@@ -154,5 +181,7 @@ export function useOfflineQueue() {
         enqueue,
         syncAll,
         retryFailed,
+        removeEntry,
+        retrySingle,
     };
 }

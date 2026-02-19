@@ -20,12 +20,13 @@ class BeneficiaryController extends Controller
         $beneficiaries = Beneficiary::query()
             ->select(['id', 'first_name', 'last_name', 'middle_name', 'municipality', 'barangay', 'civil_status', 'created_at'])
             ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('last_name', 'like', "%{$search}%")
-                        ->orWhere('first_name', 'like', "%{$search}%")
-                        ->orWhere('middle_name', 'like', "%{$search}%")
-                        ->orWhere('municipality', 'like', "%{$search}%")
-                        ->orWhere('barangay', 'like', "%{$search}%");
+                $escaped = str_replace(['%', '_'], ['\\%', '\\_'], $search);
+                $query->where(function ($q) use ($escaped) {
+                    $q->where('last_name', 'like', "%{$escaped}%")
+                        ->orWhere('first_name', 'like', "%{$escaped}%")
+                        ->orWhere('middle_name', 'like', "%{$escaped}%")
+                        ->orWhere('municipality', 'like', "%{$escaped}%")
+                        ->orWhere('barangay', 'like', "%{$escaped}%");
                 });
             })
             ->latest()

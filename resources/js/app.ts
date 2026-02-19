@@ -31,7 +31,10 @@ createInertiaApp({
 // Returning false cancels the default re-throw.
 router.on('exception', () => {
     if (!navigator.onLine) {
-        showOfflineToast();
+        showToast(
+            'You are offline. This page has not been cached yet.',
+            'error',
+        );
         return false;
     }
 });
@@ -40,17 +43,29 @@ router.on('exception', () => {
 // Returning false cancels the default modal.
 router.on('invalid', () => {
     if (!navigator.onLine) {
-        showOfflineToast();
+        showToast(
+            'You are offline. This page has not been cached yet.',
+            'error',
+        );
         return false;
     }
 });
 
-function showOfflineToast() {
+const TOAST_STYLES: Record<
+    string,
+    { color: string; bg: string; border: string }
+> = {
+    success: { color: '#166534', bg: '#f0fdf4', border: '#bbf7d0' },
+    error: { color: '#991b1b', bg: '#fef2f2', border: '#fecaca' },
+};
+
+function showToast(message: string, type: 'success' | 'error') {
     document.getElementById('offline-toast')?.remove();
 
+    const s = TOAST_STYLES[type];
     const toast = document.createElement('div');
     toast.id = 'offline-toast';
-    toast.textContent = 'You are offline. This page has not been cached yet.';
+    toast.textContent = message;
     Object.assign(toast.style, {
         position: 'fixed',
         bottom: '1.5rem',
@@ -59,9 +74,9 @@ function showOfflineToast() {
         padding: '0.75rem 1rem',
         borderRadius: '0.5rem',
         fontSize: '0.875rem',
-        color: '#1e40af',
-        backgroundColor: '#eff6ff',
-        border: '1px solid #bfdbfe',
+        color: s.color,
+        backgroundColor: s.bg,
+        border: `1px solid ${s.border}`,
         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
     });
     document.body.appendChild(toast);
@@ -79,9 +94,8 @@ if ('serviceWorker' in navigator) {
 }
 
 // ── Precache key pages after login ───────────────────────────────────────────
-// When the first authenticated page loads, fetch the key pages in the
-// background so they're in the SW cache before the user goes offline.
-// Uses X-Inertia header so the server returns JSON (same as normal navigation).
+// Fetches key pages in parallel so the SW caches them before the user goes
+// offline. Shows a toast when caching is complete so the user knows it's safe.
 let precached = false;
 
 router.on('navigate', (event) => {
@@ -92,18 +106,27 @@ router.on('navigate', (event) => {
     precached = true;
 
     const pages = ['/dashboard', '/beneficiaries', '/beneficiaries/create'];
-    for (const url of pages) {
-        // Skip the page we're already on (it's being cached by the SW right now)
-        if (url === page.url) continue;
 
-        fetch(url, {
-            headers: {
-                'X-Inertia': 'true',
-                Accept: 'text/html, application/xhtml+xml',
-            },
-            credentials: 'same-origin',
-        }).catch(() => {
-            // Silently ignore — precaching is best-effort
-        });
-    }
+    navigator.serviceWorker.ready.then(() => {
+        const fetches = pages
+            .filter((url) => url !== page.url)
+            .map((url) =>
+                fetch(url, {
+                    headers: {
+                        'X-Inertia': 'true',
+                        Accept: 'text/html, application/xhtml+xml',
+                    },
+                    credentials: 'same-origin',
+                }),
+            );
+
+        Promise.all(fetches)
+            .then(() => showToast('Ready for offline use.', 'success'))
+            .catch(() =>
+                showToast(
+                    'Some pages could not be cached for offline use.',
+                    'error',
+                ),
+            );
+    });
 });

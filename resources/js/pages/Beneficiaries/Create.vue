@@ -274,6 +274,7 @@ onUnmounted(() => {
 
 // ── Offline queue ────────────────────────────────────────────────────────────
 const { enqueue, lastSyncMessage } = useOfflineQueue();
+const isSubmitting = ref(false);
 
 // ── Toast ────────────────────────────────────────────────────────────────────
 const toastVisible = ref(false);
@@ -289,13 +290,117 @@ watch(lastSyncMessage, (msg) => {
     }, 5000);
 });
 
+// ── Client-side validation for offline saves ────────────────────────────────
+function validateOffline(): boolean {
+    const errors: Record<string, string> = {};
+
+    if (!form.timestamp) errors.timestamp = 'The date of interview is required.';
+    if (!form.province) errors.province = 'The province is required.';
+    if (!form.municipality) errors.municipality = 'The municipality is required.';
+    if (!form.barangay) errors.barangay = 'The barangay is required.';
+    if (!form.last_name) errors.last_name = 'The last name is required.';
+    if (!form.first_name) errors.first_name = 'The first name is required.';
+    if (!form.sex) errors.sex = 'The sex field is required.';
+    if (!form.birth_date) {
+        errors.birth_date = 'The birth date is required.';
+    } else if (new Date(form.birth_date) >= new Date(new Date().toDateString())) {
+        errors.birth_date = 'The birth date must be before today.';
+    }
+    if (!form.classify_extent_of_damaged_house) errors.classify_extent_of_damaged_house = 'The extent of damaged house is required.';
+    if (!form.nhts_pr_classification) errors.nhts_pr_classification = 'The NHTS-PR classification is required.';
+    if (!form.civil_status) errors.civil_status = 'The civil status is required.';
+
+    const today = new Date(new Date().toDateString());
+
+    if (form.living_with_father) {
+        if (!form.father_last_name) errors.father_last_name = "Father's last name is required when living with father.";
+        if (!form.father_first_name) errors.father_first_name = "Father's first name is required when living with father.";
+        if (!form.father_birth_date) {
+            errors.father_birth_date = "Father's birth date is required when living with father.";
+        } else if (new Date(form.father_birth_date) >= today) {
+            errors.father_birth_date = "Father's birth date must be before today.";
+        }
+    }
+
+    if (form.living_with_mother) {
+        if (!form.mother_last_name) errors.mother_last_name = "Mother's last name is required when living with mother.";
+        if (!form.mother_first_name) errors.mother_first_name = "Mother's first name is required when living with mother.";
+        if (!form.mother_birth_date) {
+            errors.mother_birth_date = "Mother's birth date is required when living with mother.";
+        } else if (new Date(form.mother_birth_date) >= today) {
+            errors.mother_birth_date = "Mother's birth date must be before today.";
+        }
+    }
+
+    if (form.living_with_siblings) {
+        if (!form.siblings_count || form.siblings_count < 1) errors.siblings_count = 'Number of siblings is required when living with siblings.';
+        form.siblings.forEach((s, i) => {
+            if (!s.last_name) errors[`siblings.${i}.last_name`] = 'Last name is required.';
+            if (!s.first_name) errors[`siblings.${i}.first_name`] = 'First name is required.';
+            if (!s.birth_date) {
+                errors[`siblings.${i}.birth_date`] = 'Birth date is required.';
+            } else if (new Date(s.birth_date) >= today) {
+                errors[`siblings.${i}.birth_date`] = 'Birth date must be before today.';
+            }
+        });
+    }
+
+    if (form.living_with_spouse) {
+        if (!form.spouse_last_name) errors.spouse_last_name = "Spouse's last name is required when living with spouse.";
+        if (!form.spouse_first_name) errors.spouse_first_name = "Spouse's first name is required when living with spouse.";
+        if (!form.spouse_birth_date) {
+            errors.spouse_birth_date = "Spouse's birth date is required when living with spouse.";
+        } else if (new Date(form.spouse_birth_date) >= today) {
+            errors.spouse_birth_date = "Spouse's birth date must be before today.";
+        }
+    }
+
+    if (form.living_with_children) {
+        if (!form.children_count || form.children_count < 1) errors.children_count = 'Number of children is required when living with children.';
+        form.children.forEach((c, i) => {
+            if (!c.last_name) errors[`children.${i}.last_name`] = 'Last name is required.';
+            if (!c.first_name) errors[`children.${i}.first_name`] = 'First name is required.';
+            if (!c.birth_date) {
+                errors[`children.${i}.birth_date`] = 'Birth date is required.';
+            } else if (new Date(c.birth_date) >= today) {
+                errors[`children.${i}.birth_date`] = 'Birth date must be before today.';
+            }
+        });
+    }
+
+    if (form.living_with_relatives) {
+        if (!form.relatives_count || form.relatives_count < 1) errors.relatives_count = 'Number of relatives is required when living with other relatives.';
+        form.relatives.forEach((r, i) => {
+            if (!r.last_name) errors[`relatives.${i}.last_name`] = 'Last name is required.';
+            if (!r.first_name) errors[`relatives.${i}.first_name`] = 'First name is required.';
+            if (!r.birth_date) {
+                errors[`relatives.${i}.birth_date`] = 'Birth date is required.';
+            } else if (new Date(r.birth_date) >= today) {
+                errors[`relatives.${i}.birth_date`] = 'Birth date must be before today.';
+            }
+            if (!r.relationship) errors[`relatives.${i}.relationship`] = 'Relationship is required.';
+        });
+    }
+
+    if (Object.keys(errors).length > 0) {
+        form.clearErrors();
+        (form as unknown as { errors: Record<string, string> }).errors = errors;
+        return false;
+    }
+
+    return true;
+}
+
 // ── Offline-aware submit ─────────────────────────────────────────────────────
 function submit() {
     if (!isOnline.value) {
+        if (!validateOffline()) return;
+        isSubmitting.value = true;
         enqueue(form.data() as Record<string, unknown>);
         clearDraft();
         pauseDraftSave = true;
         form.reset();
+        isSubmitting.value = false;
         setTimeout(() => {
             pauseDraftSave = false;
         }, 2000);
@@ -1153,7 +1258,7 @@ function submit() {
                     <Button type="button" variant="outline" as-child>
                         <a :href="index().url">Cancel</a>
                     </Button>
-                    <Button type="submit" :disabled="form.processing">
+                    <Button type="submit" :disabled="form.processing || isSubmitting">
                         <template v-if="!isOnline">Save Offline</template>
                         <template v-else-if="form.processing"
                             >Saving...</template

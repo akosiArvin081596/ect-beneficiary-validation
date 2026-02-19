@@ -18,7 +18,11 @@ export function useDraft() {
 
     function saveDraft(data: Record<string, unknown>) {
         _draft.value = { ...data };
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(_draft.value));
+        try {
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(_draft.value));
+        } catch {
+            // Storage full — silently fail; draft stays in memory only
+        }
     }
 
     function clearDraft() {

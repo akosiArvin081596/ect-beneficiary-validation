@@ -103,7 +103,7 @@ async function networkFirst(request) {
             // Full page refresh → cached entry might be Inertia JSON.
             // Build an HTML page by injecting the JSON into the app shell.
             if (isJSON) {
-                const html = await buildOfflineHtml(cached);
+                const html = await buildOfflineHtml(cached.clone());
                 if (html) return html;
             }
 

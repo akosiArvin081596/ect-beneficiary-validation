@@ -73,13 +73,18 @@ watch(search, () => {
 
 // ── Offline queue ────────────────────────────────────────────────────────────
 const {
+    queue,
     pendingCount,
     failedCount,
     isSyncing,
     lastSyncMessage,
     syncAll,
     retryFailed,
+    removeEntry,
+    retrySingle,
 } = useOfflineQueue();
+
+const queueExpanded = ref(false);
 
 // Reload list after sync completes
 watch(isSyncing, (syncing, was) => {
@@ -121,43 +126,118 @@ watch(lastSyncMessage, (msg) => {
                 class="max-w-sm"
             />
 
-            <!-- Offline queue status bar -->
+            <!-- Offline queue status -->
             <div
                 v-if="pendingCount > 0 || failedCount > 0"
-                class="flex items-center justify-between rounded-lg border px-4 py-3 text-sm"
+                class="rounded-lg border text-sm"
                 :class="
                     failedCount > 0
                         ? 'border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200'
                         : 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-200'
                 "
             >
-                <span>
-                    <span v-if="pendingCount > 0"
-                        >{{ pendingCount }} record(s) pending sync.</span
+                <!-- Summary row -->
+                <div class="flex items-center justify-between px-4 py-3">
+                    <button
+                        type="button"
+                        class="flex items-center gap-2 font-medium"
+                        @click="queueExpanded = !queueExpanded"
                     >
-                    <span
-                        v-if="failedCount > 0"
-                        class="ml-2 text-red-700 dark:text-red-300"
-                        >{{ failedCount }} failed (validation error).</span
-                    >
-                </span>
-                <div class="flex gap-2">
-                    <Button
-                        v-if="failedCount > 0"
-                        size="sm"
-                        variant="outline"
-                        @click="retryFailed"
-                        :disabled="isSyncing"
-                        >Retry Failed</Button
-                    >
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        @click="syncAll"
-                        :disabled="isSyncing || pendingCount === 0"
-                    >
-                        {{ isSyncing ? 'Syncing...' : 'Sync Now' }}
-                    </Button>
+                        <svg
+                            class="h-4 w-4 transition-transform"
+                            :class="{ 'rotate-90': queueExpanded }"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span>
+                            <span v-if="pendingCount > 0">{{ pendingCount }} record(s) pending sync.</span>
+                            <span v-if="failedCount > 0" class="ml-2 text-red-700 dark:text-red-300">{{ failedCount }} failed.</span>
+                        </span>
+                    </button>
+                    <div class="flex gap-2">
+                        <Button
+                            v-if="failedCount > 0"
+                            size="sm"
+                            variant="outline"
+                            @click="retryFailed"
+                            :disabled="isSyncing"
+                        >Retry Failed</Button>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            @click="syncAll"
+                            :disabled="isSyncing || pendingCount === 0"
+                        >
+                            {{ isSyncing ? 'Syncing...' : 'Sync Now' }}
+                        </Button>
+                    </div>
+                </div>
+
+                <!-- Expanded queue list -->
+                <div v-if="queueExpanded" class="border-t px-4 py-2">
+                    <table class="w-full text-xs">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="px-2 py-2 text-left font-medium">Name</th>
+                                <th class="px-2 py-2 text-left font-medium">Location</th>
+                                <th class="px-2 py-2 text-left font-medium">Queued</th>
+                                <th class="px-2 py-2 text-left font-medium">Status</th>
+                                <th class="px-2 py-2 text-right font-medium">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="entry in queue"
+                                :key="entry.id"
+                                class="border-b last:border-0"
+                            >
+                                <td class="px-2 py-2">
+                                    {{ (entry.data.last_name as string) || '—' }},
+                                    {{ (entry.data.first_name as string) || '' }}
+                                </td>
+                                <td class="px-2 py-2">
+                                    {{ (entry.data.municipality as string) || '—' }} /
+                                    {{ (entry.data.barangay as string) || '—' }}
+                                </td>
+                                <td class="px-2 py-2">
+                                    {{ new Date(entry.queuedAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
+                                </td>
+                                <td class="px-2 py-2">
+                                    <span
+                                        v-if="entry.status === 'pending'"
+                                        class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                                    >Pending</span>
+                                    <span
+                                        v-else
+                                        class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900 dark:text-red-300"
+                                        :title="entry.failureReason"
+                                    >Failed</span>
+                                </td>
+                                <td class="px-2 py-2 text-right">
+                                    <div class="flex justify-end gap-1">
+                                        <Button
+                                            v-if="entry.status === 'failed'"
+                                            size="sm"
+                                            variant="ghost"
+                                            class="h-7 px-2 text-xs"
+                                            @click="retrySingle(entry.id)"
+                                            :disabled="isSyncing"
+                                        >Retry</Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            class="h-7 px-2 text-xs text-red-600 hover:text-red-700 dark:text-red-400"
+                                            @click="removeEntry(entry.id)"
+                                        >Remove</Button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
