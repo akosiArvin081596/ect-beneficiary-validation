@@ -35,10 +35,10 @@ class StoreBeneficiaryRequest extends FormRequest
             'sex' => ['required', 'in:Male,Female'],
             'birth_date' => ['required', 'date', 'before:today'],
             'classify_extent_of_damaged_house' => ['required', 'in:Totally Damaged (Severely),Partially Damaged (Slightly)'],
-            'nhts_pr_classification' => ['required', 'in:Poor,Near Poor,Not Poor'],
+            'nhts_pr_classification' => ['nullable', 'in:Poor,Near Poor,Not Poor'],
             'applicable_sector' => ['nullable', 'array'],
             'applicable_sector.*' => ['string', 'max:255'],
-            'civil_status' => ['required', 'in:Single,Married,Widowed,Separated,Annulled'],
+            'civil_status' => ['required', 'in:Single,Married,Common Law,Widowed,Separated,Annulled'],
 
             // Father
             'living_with_father' => ['nullable', 'boolean'],

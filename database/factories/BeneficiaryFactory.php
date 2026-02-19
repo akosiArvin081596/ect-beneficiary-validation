@@ -31,9 +31,9 @@ class BeneficiaryFactory extends Factory
             'sex' => fake()->randomElement(['Male', 'Female']),
             'birth_date' => fake()->dateTimeBetween('-80 years', '-18 years')->format('Y-m-d'),
             'classify_extent_of_damaged_house' => fake()->randomElement(['Totally Damaged (Severely)', 'Partially Damaged (Slightly)']),
-            'nhts_pr_classification' => fake()->randomElement(['Poor', 'Near Poor', 'Not Poor']),
-            'applicable_sector' => fake()->optional(0.6)->randomElements(['Senior Citizen', 'PWD', 'Solo Parent', 'Indigenous People'], fake()->numberBetween(1, 2)),
-            'civil_status' => fake()->randomElement(['Single', 'Married', 'Widowed', 'Separated', 'Annulled']),
+            'nhts_pr_classification' => fake()->optional(0.8)->randomElement(['Poor', 'Near Poor', 'Not Poor']),
+            'applicable_sector' => fake()->optional(0.6)->randomElements(['4Ps', 'Farmer', 'Fisherfolk', 'Indigenous People', 'Senior Citizen', 'Solo Parent', 'Pregnant Women', 'Lactating Mother', 'PWD', 'Out-of-School Youth', 'Former Rebel/Decommissioned Combatant', 'YAKAP Bayan/Drug Surrenderee', 'LGBTQIA+'], fake()->numberBetween(1, 3)),
+            'civil_status' => fake()->randomElement(['Single', 'Married', 'Common Law', 'Widowed', 'Separated', 'Annulled']),
 
             'living_with_father' => $livingWithFather,
             'father_last_name' => $livingWithFather ? fake()->lastName() : null,

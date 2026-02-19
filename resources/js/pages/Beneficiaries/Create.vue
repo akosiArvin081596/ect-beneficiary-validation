@@ -62,10 +62,20 @@ function resizeArray<T>(arr: T[], size: number, factory: () => T): T[] {
 }
 
 const APPLICABLE_SECTORS = [
-    'Senior Citizen',
-    'PWD',
-    'Solo Parent',
+    '4Ps',
+    'Farmer',
+    'Fisherfolk',
     'Indigenous People',
+    'Senior Citizen',
+    'Solo Parent',
+    'Pregnant Women',
+    'Lactating Mother',
+    'PWD',
+    'Out-of-School Youth',
+    'Former Rebel/Decommissioned Combatant',
+    'YAKAP Bayan/Drug Surrenderee',
+    'LGBTQIA+',
+    'Other',
 ];
 
 const form = useForm({
@@ -760,7 +770,7 @@ function submit() {
                                 v-model="form.nhts_pr_classification"
                                 :class="selectClass"
                             >
-                                <option value="" disabled>Select...</option>
+                                <option value="">Select...</option>
                                 <option value="Poor">Poor</option>
                                 <option value="Near Poor">Near Poor</option>
                                 <option value="Not Poor">Not Poor</option>
@@ -779,6 +789,7 @@ function submit() {
                                 <option value="" disabled>Select...</option>
                                 <option value="Single">Single</option>
                                 <option value="Married">Married</option>
+                                <option value="Common Law">Common Law</option>
                                 <option value="Widowed">Widowed</option>
                                 <option value="Separated">Separated</option>
                                 <option value="Annulled">Annulled</option>
