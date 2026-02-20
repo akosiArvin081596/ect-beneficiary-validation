@@ -25,9 +25,7 @@ class BeneficiaryController extends Controller
                 $query->where(function ($q) use ($escaped) {
                     $q->where('last_name', 'like', "%{$escaped}%")
                         ->orWhere('first_name', 'like', "%{$escaped}%")
-                        ->orWhere('middle_name', 'like', "%{$escaped}%")
-                        ->orWhere('municipality', 'like', "%{$escaped}%")
-                        ->orWhere('barangay', 'like', "%{$escaped}%");
+                        ->orWhere('middle_name', 'like', "%{$escaped}%");
                 });
             })
             ->latest()

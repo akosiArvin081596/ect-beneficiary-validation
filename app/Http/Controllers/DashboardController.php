@@ -23,6 +23,12 @@ class DashboardController extends Controller
                 ->groupBy('municipality')
                 ->orderByDesc('count')
                 ->get(),
+            'by_barangay' => Beneficiary::select('municipality', 'barangay')
+                ->selectRaw('count(*) as count')
+                ->groupBy('municipality', 'barangay')
+                ->orderBy('municipality')
+                ->orderBy('barangay')
+                ->get(),
             'recent_beneficiaries' => Beneficiary::select(['id', 'first_name', 'last_name', 'middle_name', 'municipality', 'barangay', 'created_at'])
                 ->latest()
                 ->limit(10)

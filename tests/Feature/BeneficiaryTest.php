@@ -258,13 +258,13 @@ test('search filters beneficiaries by last name', function () {
         );
 });
 
-test('search filters beneficiaries by municipality', function () {
+test('search filters beneficiaries by name', function () {
     $user = User::factory()->create();
-    Beneficiary::factory()->create(['municipality' => 'Butuan City']);
-    Beneficiary::factory()->create(['municipality' => 'Cabadbaran']);
+    Beneficiary::factory()->create(['last_name' => 'Santos']);
+    Beneficiary::factory()->create(['last_name' => 'Reyes']);
 
     $this->actingAs($user)
-        ->get(route('beneficiaries.index', ['search' => 'Butuan']))
+        ->get(route('beneficiaries.index', ['search' => 'Santos']))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('Beneficiaries/Index')

@@ -110,7 +110,7 @@ watch(search, () => {
             <Input
                 v-model="search"
                 type="text"
-                placeholder="Search by name, municipality, or barangay..."
+                placeholder="Search by last name, first name, or middle name..."
                 class="max-w-sm"
             />
 
