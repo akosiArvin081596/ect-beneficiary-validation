@@ -23,6 +23,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('data-cleansing', [DataCleansingController::class, 'index'])->name('data-cleansing.index');
     Route::delete('data-cleansing/{beneficiary}', [DataCleansingController::class, 'destroy'])->name('data-cleansing.destroy');
     Route::post('data-cleansing/merge', [DataCleansingController::class, 'merge'])->name('data-cleansing.merge');
+    Route::post('data-cleansing/merge-all', [DataCleansingController::class, 'mergeAll'])->name('data-cleansing.merge-all');
 
     Route::get('masterlist', [MasterlistController::class, 'index'])->name('masterlist.index');
     Route::get('masterlist/export-csv', [MasterlistController::class, 'exportCsv'])->name('masterlist.export-csv');

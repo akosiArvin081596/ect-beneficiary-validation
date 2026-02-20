@@ -160,6 +160,25 @@ function executeMerge() {
     );
 }
 
+// ── Merge All ──────────────────────────────────────────────────────────────
+const mergeAllDialogOpen = ref(false);
+const isMergingAll = ref(false);
+
+function executeMergeAll() {
+    isMergingAll.value = true;
+    router.post(
+        '/data-cleansing/merge-all',
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                mergeAllDialogOpen.value = false;
+                isMergingAll.value = false;
+            },
+        },
+    );
+}
+
 function relationsCount(r: BeneficiaryRecord): number {
     return r.siblings.length + r.children.length + r.relatives.length;
 }
@@ -186,6 +205,14 @@ function formatDate(dateStr: string): string {
                         group{{ pagination.total === 1 ? '' : 's' }}
                     </Badge>
                 </div>
+                <Button
+                    v-if="groups.length > 0"
+                    variant="destructive"
+                    size="sm"
+                    @click="mergeAllDialogOpen = true"
+                >
+                    Merge All
+                </Button>
             </div>
 
             <!-- Search -->
@@ -407,6 +434,30 @@ function formatDate(dateStr: string): string {
                         <Button variant="outline">Cancel</Button>
                     </DialogClose>
                     <Button @click="executeMerge">Merge</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Merge All confirmation dialog -->
+        <Dialog v-model:open="mergeAllDialogOpen">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Merge All Duplicates</DialogTitle>
+                    <DialogDescription>
+                        This will merge all {{ pagination.total }} duplicate
+                        group{{ pagination.total === 1 ? '' : 's' }}. For each
+                        group, the oldest record will be kept and all family
+                        relations will be transferred to it. All other
+                        duplicates will be deleted. This cannot be undone.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <DialogClose as-child>
+                        <Button variant="outline" :disabled="isMergingAll">Cancel</Button>
+                    </DialogClose>
+                    <Button variant="destructive" :disabled="isMergingAll" @click="executeMergeAll">
+                        {{ isMergingAll ? 'Merging...' : 'Merge All' }}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

@@ -93,22 +93,55 @@ class DataCleansingController extends Controller
             return back()->withErrors(['keep_id' => 'The kept record cannot also be in the removed list.']);
         }
 
-        DB::transaction(function () use ($validated) {
-            DB::table('beneficiary_siblings')
-                ->whereIn('beneficiary_id', $validated['remove_ids'])
-                ->update(['beneficiary_id' => $validated['keep_id']]);
-
-            DB::table('beneficiary_children')
-                ->whereIn('beneficiary_id', $validated['remove_ids'])
-                ->update(['beneficiary_id' => $validated['keep_id']]);
-
-            DB::table('beneficiary_relatives')
-                ->whereIn('beneficiary_id', $validated['remove_ids'])
-                ->update(['beneficiary_id' => $validated['keep_id']]);
-
-            Beneficiary::whereIn('id', $validated['remove_ids'])->delete();
-        });
+        $this->mergeRecords($validated['keep_id'], $validated['remove_ids']);
 
         return back();
+    }
+
+    public function mergeAll(): RedirectResponse
+    {
+        $duplicateKeys = Beneficiary::query()
+            ->select('first_name', 'last_name', 'birth_date')
+            ->groupBy('first_name', 'last_name', 'birth_date')
+            ->havingRaw('COUNT(*) > 1')
+            ->get();
+
+        foreach ($duplicateKeys as $key) {
+            $records = Beneficiary::where('first_name', $key->first_name)
+                ->where('last_name', $key->last_name)
+                ->where('birth_date', $key->birth_date)
+                ->orderBy('created_at')
+                ->pluck('id');
+
+            if ($records->count() < 2) {
+                continue;
+            }
+
+            $keepId = $records->first();
+            $removeIds = $records->slice(1)->values()->all();
+
+            $this->mergeRecords($keepId, $removeIds);
+        }
+
+        return back();
+    }
+
+    private function mergeRecords(int $keepId, array $removeIds): void
+    {
+        DB::transaction(function () use ($keepId, $removeIds) {
+            DB::table('beneficiary_siblings')
+                ->whereIn('beneficiary_id', $removeIds)
+                ->update(['beneficiary_id' => $keepId]);
+
+            DB::table('beneficiary_children')
+                ->whereIn('beneficiary_id', $removeIds)
+                ->update(['beneficiary_id' => $keepId]);
+
+            DB::table('beneficiary_relatives')
+                ->whereIn('beneficiary_id', $removeIds)
+                ->update(['beneficiary_id' => $keepId]);
+
+            Beneficiary::whereIn('id', $removeIds)->delete();
+        });
     }
 }
