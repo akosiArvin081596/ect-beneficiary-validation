@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateBeneficiaryRequest;
 use App\Models\Beneficiary;
+use App\Models\Province;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -40,9 +44,64 @@ class MasterlistController extends Controller
     {
         $beneficiary->load(['siblings', 'children', 'relatives']);
 
+        $locations = Province::with('municipalities.barangays')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Province $province) => [
+                'name' => $province->name,
+                'municipalities' => $province->municipalities
+                    ->sortBy('name')
+                    ->values()
+                    ->map(fn ($municipality) => [
+                        'name' => $municipality->name,
+                        'barangays' => $municipality->barangays
+                            ->sortBy('name')
+                            ->pluck('name')
+                            ->values()
+                            ->all(),
+                    ])
+                    ->all(),
+            ])
+            ->values()
+            ->all();
+
         return Inertia::render('Masterlist/Show', [
             'beneficiary' => $beneficiary,
+            'locations' => $locations,
         ]);
+    }
+
+    public function update(UpdateBeneficiaryRequest $request, Beneficiary $beneficiary): RedirectResponse
+    {
+        $data = $request->validated();
+
+        $siblings = $data['siblings'] ?? [];
+        $children = $data['children'] ?? [];
+        $relatives = $data['relatives'] ?? [];
+
+        unset($data['siblings'], $data['children'], $data['relatives']);
+        unset($data['siblings_count'], $data['children_count'], $data['relatives_count']);
+
+        DB::transaction(function () use ($beneficiary, $data, $siblings, $children, $relatives) {
+            $beneficiary->update($data);
+
+            $beneficiary->siblings()->delete();
+            if (! empty($siblings)) {
+                $beneficiary->siblings()->createMany($siblings);
+            }
+
+            $beneficiary->children()->delete();
+            if (! empty($children)) {
+                $beneficiary->children()->createMany($children);
+            }
+
+            $beneficiary->relatives()->delete();
+            if (! empty($relatives)) {
+                $beneficiary->relatives()->createMany($relatives);
+            }
+        });
+
+        return to_route('masterlist.show', $beneficiary);
     }
 
     public function exportCsv(Request $request): StreamedResponse

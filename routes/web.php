@@ -28,6 +28,7 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('masterlist', [MasterlistController::class, 'index'])->name('masterlist.index');
     Route::get('masterlist/export-csv', [MasterlistController::class, 'exportCsv'])->name('masterlist.export-csv');
     Route::get('masterlist/{beneficiary}', [MasterlistController::class, 'show'])->name('masterlist.show');
+    Route::put('masterlist/{beneficiary}', [MasterlistController::class, 'update'])->name('masterlist.update');
 });
 
 require __DIR__.'/settings.php';
