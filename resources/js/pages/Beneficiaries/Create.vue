@@ -169,6 +169,25 @@ watch(
     },
 );
 
+// Auto-toggle Senior Citizen when age >= 60
+watch(
+    () => form.birth_date,
+    (val) => {
+        if (!val) return;
+        const today = new Date();
+        const birth = new Date(val);
+        let age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+        const hasSenior = form.applicable_sector.includes('Senior Citizen');
+        if (age >= 60 && !hasSenior) {
+            form.applicable_sector.push('Senior Citizen');
+        } else if (age < 60 && hasSenior) {
+            form.applicable_sector.splice(form.applicable_sector.indexOf('Senior Citizen'), 1);
+        }
+    },
+);
+
 // Clear fields when toggled off
 watch(
     () => form.living_with_father,
