@@ -5,46 +5,39 @@ namespace App\Console\Commands;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
-
-use function Laravel\Prompts\password;
-use function Laravel\Prompts\text;
+use Illuminate\Support\Facades\Validator;
 
 class CreateAdminUser extends Command
 {
-    protected $signature = 'admin:create';
+    protected $signature = 'admin:create
+                            {--name= : Admin name}
+                            {--email= : Admin email}
+                            {--password= : Admin password}';
 
     protected $description = 'Create an admin (verified) user for production';
 
     public function handle(): int
     {
-        $name = text(
-            label: 'Name',
-            required: true,
+        $name = $this->option('name') ?? $this->ask('Name');
+        $email = $this->option('email') ?? $this->ask('Email');
+        $password = $this->option('password') ?? $this->secret('Password');
+
+        $validator = Validator::make(
+            ['name' => $name, 'email' => $email, 'password' => $password],
+            [
+                'name' => ['required', 'string'],
+                'email' => ['required', 'email', 'unique:users,email'],
+                'password' => ['required', 'min:8'],
+            ],
         );
 
-        $email = text(
-            label: 'Email',
-            required: true,
-            validate: function (string $value) {
-                if (! filter_var($value, FILTER_VALIDATE_EMAIL)) {
-                    return 'Please enter a valid email address.';
-                }
+        if ($validator->fails()) {
+            foreach ($validator->errors()->all() as $error) {
+                $this->error($error);
+            }
 
-                if (User::where('email', $value)->exists()) {
-                    return 'A user with that email already exists.';
-                }
-
-                return null;
-            },
-        );
-
-        $password = password(
-            label: 'Password',
-            required: true,
-            validate: fn (string $value) => strlen($value) < 8
-                ? 'Password must be at least 8 characters.'
-                : null,
-        );
+            return self::FAILURE;
+        }
 
         User::create([
             'name' => $name,
