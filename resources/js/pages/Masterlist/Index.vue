@@ -133,13 +133,12 @@ watch(search, () => {
                             <th class="px-4 py-3 text-center font-medium">Children</th>
                             <th class="px-4 py-3 text-center font-medium">Relatives</th>
                             <th class="px-4 py-3 text-left font-medium">Date Added</th>
-                            <th class="px-4 py-3 text-left font-medium"></th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-if="beneficiaries.data.length === 0">
                             <td
-                                colspan="16"
+                                colspan="15"
                                 class="px-4 py-8 text-center text-muted-foreground"
                             >
                                 <template v-if="search">
@@ -153,7 +152,8 @@ watch(search, () => {
                         <tr
                             v-for="b in beneficiaries.data"
                             :key="b.id"
-                            class="border-b last:border-0 hover:bg-muted/30"
+                            class="border-b last:border-0 cursor-pointer hover:bg-muted/30"
+                            @dblclick="router.visit(show(b.id).url)"
                         >
                             <td class="px-4 py-3 font-medium">{{ fullName(b) }}</td>
                             <td class="px-4 py-3">{{ b.sex }}</td>
@@ -172,11 +172,6 @@ watch(search, () => {
                             <td class="px-4 py-3 text-center">{{ b.children_count }}</td>
                             <td class="px-4 py-3 text-center">{{ b.relatives_count }}</td>
                             <td class="px-4 py-3">{{ formatDate(b.created_at) }}</td>
-                            <td class="px-4 py-3">
-                                <Button as-child size="sm" variant="ghost">
-                                    <Link :href="show(b.id).url">View</Link>
-                                </Button>
-                            </td>
                         </tr>
                     </tbody>
                 </table>
