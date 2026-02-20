@@ -70,16 +70,48 @@ class BeneficiaryController extends Controller
 
     public function store(StoreBeneficiaryRequest $request): RedirectResponse
     {
-        $this->createBeneficiaryWithRelations($request->validated());
+        $data = $request->validated();
+
+        if ($this->beneficiaryExists($data)) {
+            return back()->withErrors([
+                'first_name' => 'A beneficiary with this name and birth date already exists.',
+            ])->withInput();
+        }
+
+        $this->createBeneficiaryWithRelations($data);
 
         return to_route('beneficiaries.index');
     }
 
     public function offlineSync(StoreBeneficiaryRequest $request): JsonResponse
     {
-        $this->createBeneficiaryWithRelations($request->validated());
+        $offlineId = $request->header('X-Offline-ID');
+
+        if ($offlineId && Beneficiary::where('offline_id', $offlineId)->exists()) {
+            return response()->json(['synced' => true], 201);
+        }
+
+        $data = $request->validated();
+
+        if ($this->beneficiaryExists($data)) {
+            return response()->json(['synced' => true, 'duplicate' => true], 201);
+        }
+
+        if ($offlineId) {
+            $data['offline_id'] = $offlineId;
+        }
+
+        $this->createBeneficiaryWithRelations($data);
 
         return response()->json(['synced' => true], 201);
+    }
+
+    private function beneficiaryExists(array $data): bool
+    {
+        return Beneficiary::where('first_name', $data['first_name'])
+            ->where('last_name', $data['last_name'])
+            ->where('birth_date', $data['birth_date'])
+            ->exists();
     }
 
     private function createBeneficiaryWithRelations(array $data): Beneficiary

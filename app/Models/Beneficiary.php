@@ -12,6 +12,7 @@ class Beneficiary extends Model
     use HasFactory;
 
     protected $fillable = [
+        'offline_id',
         'timestamp',
         'province',
         'municipality',

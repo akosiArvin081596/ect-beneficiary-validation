@@ -81,6 +81,7 @@ async function syncAll(): Promise<void> {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
                     'X-CSRF-TOKEN': csrf,
+                    'X-Offline-ID': entry.id,
                 },
                 body: JSON.stringify(entry.data),
             });

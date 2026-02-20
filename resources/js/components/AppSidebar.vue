@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Users } from 'lucide-vue-next';
+import { Link, usePage } from '@inertiajs/vue3';
+import { BookOpen, ClipboardList, Folder, LayoutGrid, Sparkles, Users } from 'lucide-vue-next';
+import { computed } from 'vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
@@ -15,21 +16,42 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { index as beneficiariesIndex } from '@/routes/beneficiaries';
+import { index as dataCleansingIndex } from '@/routes/data-cleansing';
+import { index as masterlistIndex } from '@/routes/masterlist';
 import { type NavItem } from '@/types';
 import AppLogo from './AppLogo.vue';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Beneficiaries',
-        href: beneficiariesIndex(),
-        icon: Users,
-    },
-];
+const page = usePage();
+
+const mainNavItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Beneficiaries',
+            href: beneficiariesIndex(),
+            icon: Users,
+        },
+    ];
+
+    if (page.props.auth.user.is_admin) {
+        items.push({
+            title: 'Data Cleansing',
+            href: dataCleansingIndex(),
+            icon: Sparkles,
+        });
+        items.push({
+            title: 'Masterlist',
+            href: masterlistIndex(),
+            icon: ClipboardList,
+        });
+    }
+
+    return items;
+});
 
 const footerNavItems: NavItem[] = [
     {

@@ -38,7 +38,9 @@
       "Bash(npx prettier:*)",
       "WebSearch",
       "WebFetch(domain:www.philatlas.com)",
-      "WebFetch(domain:psa.gov.ph)"
+      "WebFetch(domain:psa.gov.ph)",
+      "Bash(php artisan admin:create:*)",
+      "Bash(echo:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
