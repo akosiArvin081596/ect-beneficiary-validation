@@ -25,6 +25,8 @@ class DashboardController extends Controller
                 ->get(),
             'by_barangay' => Beneficiary::select('municipality', 'barangay')
                 ->selectRaw('count(*) as count')
+                ->selectRaw("sum(classify_extent_of_damaged_house = 'Totally Damaged (Severely)') as totally_damaged")
+                ->selectRaw("sum(classify_extent_of_damaged_house = 'Partially Damaged (Slightly)') as partially_damaged")
                 ->groupBy('municipality', 'barangay')
                 ->orderBy('municipality')
                 ->orderBy('barangay')

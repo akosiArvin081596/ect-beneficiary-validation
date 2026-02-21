@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { computed } from 'vue';
 import { WifiOff, Users, Home, AlertTriangle, ShieldCheck, ShieldAlert, ShieldX, MapPin, Clock } from 'lucide-vue-next';
-import AppLayout from '@/layouts/AppLayout.vue';
+import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { isOnline, useOfflineQueue } from '@/composables/useOfflineQueue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 
@@ -18,6 +18,8 @@ interface BarangayCount {
     municipality: string;
     barangay: string;
     count: number;
+    totally_damaged: number;
+    partially_damaged: number;
 }
 
 interface RecentBeneficiary {
@@ -290,24 +292,41 @@ const barColors = [
                                     <!-- Barangay sub-rows -->
                                     <div
                                         v-if="barangaysByMunicipality[row.municipality]?.length"
-                                        class="ml-5 space-y-1 border-l-2 pl-4"
-                                        :class="barColors[idx % barColors.length].replace('bg-', 'border-')"
+                                        class="mt-3 overflow-hidden rounded-lg border"
                                     >
+                                        <!-- Table header -->
+                                        <div class="grid grid-cols-[1fr_72px_72px_60px] items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs font-semibold text-muted-foreground">
+                                            <span>Barangay</span>
+                                            <span class="flex items-center justify-center gap-1 text-red-500">
+                                                <Home class="size-3" /> Totally
+                                            </span>
+                                            <span class="flex items-center justify-center gap-1 text-amber-500">
+                                                <AlertTriangle class="size-3" /> Partially
+                                            </span>
+                                            <span class="text-center">Total</span>
+                                        </div>
+                                        <!-- Table rows -->
                                         <div
-                                            v-for="brgy in barangaysByMunicipality[row.municipality]"
+                                            v-for="(brgy, brgyIdx) in barangaysByMunicipality[row.municipality]"
                                             :key="brgy.barangay"
-                                            class="flex items-center justify-between py-0.5"
+                                            class="grid grid-cols-[1fr_72px_72px_60px] items-center gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
+                                            :class="{ 'border-b': brgyIdx < barangaysByMunicipality[row.municipality].length - 1 }"
                                         >
-                                            <span class="text-sm text-muted-foreground">{{ brgy.barangay }}</span>
-                                            <div class="flex items-center gap-3">
-                                                <div class="h-1 w-20 overflow-hidden rounded-full bg-muted">
-                                                    <div
-                                                        class="h-full rounded-full transition-all duration-500"
-                                                        :class="barColors[idx % barColors.length]"
-                                                        :style="{ width: pct(brgy.count, row.count) + '%' }"
-                                                    />
-                                                </div>
-                                                <span class="w-8 text-right text-xs font-medium text-muted-foreground">{{ brgy.count }}</span>
+                                            <span class="truncate text-sm font-medium">{{ brgy.barangay }}</span>
+                                            <div class="flex justify-center">
+                                                <span class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md bg-red-500/10 px-2 py-0.5 text-xs font-bold text-red-600 dark:text-red-400">
+                                                    {{ brgy.totally_damaged }}
+                                                </span>
+                                            </div>
+                                            <div class="flex justify-center">
+                                                <span class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+                                                    {{ brgy.partially_damaged }}
+                                                </span>
+                                            </div>
+                                            <div class="flex justify-center">
+                                                <span class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md bg-muted px-2 py-0.5 text-xs font-bold">
+                                                    {{ brgy.count }}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
