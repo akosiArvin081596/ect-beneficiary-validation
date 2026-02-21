@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { WifiOff, Users, Home, AlertTriangle, ShieldCheck, ShieldAlert, ShieldX, MapPin, Clock } from 'lucide-vue-next';
-import { computed } from 'vue';
+import axios from 'axios';
+import { WifiOff, Users, Home, AlertTriangle, ShieldCheck, ShieldAlert, ShieldX, MapPin, Clock, Loader2, ChevronLeft, ChevronRight, Search } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogHeader, DialogTitle, DialogScrollContent } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { isOnline, useOfflineQueue } from '@/composables/useOfflineQueue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
@@ -110,6 +113,109 @@ const barColors = [
     'bg-orange-500',
     'bg-teal-500',
 ];
+
+// Dialog state for beneficiary list
+interface BeneficiaryListItem {
+    id: number;
+    first_name: string;
+    last_name: string;
+    middle_name: string | null;
+    extension_name: string | null;
+    sex: string;
+    birth_date: string;
+    classify_extent_of_damaged_house: string;
+    purok: string | null;
+}
+
+const dialogOpen = ref(false);
+const dialogLoading = ref(false);
+const dialogTitle = ref('');
+const dialogBeneficiaries = ref<BeneficiaryListItem[]>([]);
+
+const dialogPage = ref(1);
+const perPage = 15;
+const dialogSearch = ref('');
+const dialogDamageFilter = ref<'all' | 'totally' | 'partially'>('all');
+
+const filteredBeneficiaries = computed(() => {
+    let list = dialogBeneficiaries.value;
+
+    if (dialogDamageFilter.value === 'totally') {
+        list = list.filter((b) => b.classify_extent_of_damaged_house.startsWith('Totally'));
+    } else if (dialogDamageFilter.value === 'partially') {
+        list = list.filter((b) => b.classify_extent_of_damaged_house.startsWith('Partially'));
+    }
+
+    const q = dialogSearch.value.trim().toLowerCase();
+    if (q) {
+        list = list.filter((b) => {
+            const name = `${b.last_name} ${b.first_name} ${b.middle_name ?? ''} ${b.extension_name ?? ''}`.toLowerCase();
+            return name.includes(q) || (b.purok && b.purok.toLowerCase().includes(q));
+        });
+    }
+
+    return list;
+});
+
+watch([dialogSearch, dialogDamageFilter], () => {
+    dialogPage.value = 1;
+});
+
+const dialogTotalPages = computed(() => Math.max(1, Math.ceil(filteredBeneficiaries.value.length / perPage)));
+const paginatedBeneficiaries = computed(() => {
+    const start = (dialogPage.value - 1) * perPage;
+    return filteredBeneficiaries.value.slice(start, start + perPage);
+});
+const visiblePages = computed(() => {
+    const total = dialogTotalPages.value;
+    const current = dialogPage.value;
+    const pages: (number | '...')[] = [];
+
+    if (total <= 7) {
+        for (let i = 1; i <= total; i++) pages.push(i);
+        return pages;
+    }
+
+    pages.push(1);
+    if (current > 3) pages.push('...');
+    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+        pages.push(i);
+    }
+    if (current < total - 2) pages.push('...');
+    pages.push(total);
+    return pages;
+});
+
+async function openBeneficiaryList(municipality: string, barangay: string, damageType: 'totally' | 'partially' | 'all') {
+    const labels: Record<string, string> = {
+        totally: 'Totally Damaged',
+        partially: 'Partially Damaged',
+        all: 'All',
+    };
+    dialogTitle.value = `${barangay}, ${municipality} — ${labels[damageType]}`;
+    dialogBeneficiaries.value = [];
+    dialogPage.value = 1;
+    dialogSearch.value = '';
+    dialogDamageFilter.value = 'all';
+    dialogLoading.value = true;
+    dialogOpen.value = true;
+
+    try {
+        const { data } = await axios.get('/dashboard/beneficiaries-by-barangay', {
+            params: { municipality, barangay, damage_type: damageType },
+        });
+        dialogBeneficiaries.value = data;
+    } finally {
+        dialogLoading.value = false;
+    }
+}
+
+function fullName(b: BeneficiaryListItem): string {
+    const parts = [b.last_name, b.first_name];
+    if (b.middle_name) parts.push(b.middle_name);
+    if (b.extension_name) parts.push(b.extension_name);
+    return parts.join(', ');
+}
 </script>
 
 <template>
@@ -309,10 +415,11 @@ const barColors = [
                                         <div
                                             v-for="(brgy, brgyIdx) in barangaysByMunicipality[row.municipality]"
                                             :key="brgy.barangay"
-                                            class="grid grid-cols-[1fr_72px_72px_60px] items-center gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
+                                            class="grid cursor-pointer grid-cols-[1fr_72px_72px_60px] items-center gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
                                             :class="{ 'border-b': brgyIdx < barangaysByMunicipality[row.municipality].length - 1 }"
+                                            @click="openBeneficiaryList(brgy.municipality, brgy.barangay, 'all')"
                                         >
-                                            <span class="truncate text-sm font-medium">{{ brgy.barangay }}</span>
+                                            <span class="truncate text-sm font-medium text-primary underline-offset-2 hover:underline">{{ brgy.barangay }}</span>
                                             <div class="flex justify-center">
                                                 <span class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md bg-red-500/10 px-2 py-0.5 text-xs font-bold text-red-600 dark:text-red-400">
                                                     {{ brgy.totally_damaged }}
@@ -388,5 +495,123 @@ const barColors = [
                 </div>
             </template>
         </div>
+
+        <!-- Beneficiary list dialog -->
+        <Dialog v-model:open="dialogOpen">
+            <DialogScrollContent class="flex max-h-[90vh] max-w-5xl flex-col">
+                <DialogHeader>
+                    <DialogTitle>{{ dialogTitle }}</DialogTitle>
+                </DialogHeader>
+
+                <!-- Loading -->
+                <div v-if="dialogLoading" class="flex items-center justify-center py-12">
+                    <Loader2 class="size-6 animate-spin text-muted-foreground" />
+                </div>
+
+                <!-- Empty -->
+                <div v-else-if="dialogBeneficiaries.length === 0" class="py-12 text-center text-sm text-muted-foreground">
+                    No beneficiaries found.
+                </div>
+
+                <!-- List -->
+                <template v-else>
+                    <!-- Search & filter -->
+                    <div class="flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <Search class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input v-model="dialogSearch" placeholder="Search by name or purok..." class="pl-9" />
+                        </div>
+                        <select
+                            v-model="dialogDamageFilter"
+                            class="h-9 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                        >
+                            <option value="all">All Damage Types</option>
+                            <option value="totally">Totally Damaged</option>
+                            <option value="partially">Partially Damaged</option>
+                        </select>
+                    </div>
+
+                    <!-- No results after filter -->
+                    <div v-if="filteredBeneficiaries.length === 0" class="py-8 text-center text-sm text-muted-foreground">
+                        No matching beneficiaries found.
+                    </div>
+
+                    <div v-else class="min-h-0 flex-1 overflow-hidden rounded-lg border">
+                        <!-- Table header -->
+                        <div class="grid grid-cols-[40px_minmax(0,1fr)_70px_100px_100px] items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs font-semibold text-muted-foreground">
+                            <span class="text-center">#</span>
+                            <span>Name</span>
+                            <span class="text-center">Sex</span>
+                            <span class="text-center">Birth Date</span>
+                            <span class="text-center">Damage</span>
+                        </div>
+                        <!-- Table rows -->
+                        <div
+                            v-for="(b, i) in paginatedBeneficiaries"
+                            :key="b.id"
+                            class="grid grid-cols-[40px_minmax(0,1fr)_70px_100px_100px] items-center gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
+                            :class="{ 'border-b': i < paginatedBeneficiaries.length - 1 }"
+                        >
+                            <span class="text-center text-xs text-muted-foreground">{{ (dialogPage - 1) * perPage + i + 1 }}</span>
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-medium">{{ fullName(b) }}</p>
+                                <p v-if="b.purok" class="truncate text-xs text-muted-foreground">{{ b.purok }}</p>
+                            </div>
+                            <span class="text-center text-xs">{{ b.sex }}</span>
+                            <span class="text-center text-xs">{{ formatDate(b.birth_date) }}</span>
+                            <div class="flex justify-center">
+                                <span
+                                    class="inline-flex items-center justify-center rounded-md px-1.5 py-0.5 text-[10px] font-bold"
+                                    :class="b.classify_extent_of_damaged_house.startsWith('Totally')
+                                        ? 'bg-red-500/10 text-red-600 dark:text-red-400'
+                                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'"
+                                >
+                                    {{ b.classify_extent_of_damaged_house.startsWith('Totally') ? 'Totally' : 'Partially' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination footer -->
+                    <div v-if="filteredBeneficiaries.length > 0" class="flex items-center justify-between pt-2">
+                        <p class="text-xs text-muted-foreground">
+                            <template v-if="filteredBeneficiaries.length !== dialogBeneficiaries.length">
+                                {{ filteredBeneficiaries.length }} of {{ dialogBeneficiaries.length }} beneficiar{{ dialogBeneficiaries.length === 1 ? 'y' : 'ies' }}
+                            </template>
+                            <template v-else>
+                                {{ dialogBeneficiaries.length }} beneficiar{{ dialogBeneficiaries.length === 1 ? 'y' : 'ies' }}
+                            </template>
+                        </p>
+                        <div v-if="dialogTotalPages > 1" class="flex items-center gap-1">
+                            <button
+                                class="inline-flex size-8 items-center justify-center rounded-md border transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
+                                :disabled="dialogPage <= 1"
+                                @click="dialogPage--"
+                            >
+                                <ChevronLeft class="size-4" />
+                            </button>
+                            <template v-for="(p, i) in visiblePages" :key="i">
+                                <span v-if="p === '...'" class="px-1 text-xs text-muted-foreground">...</span>
+                                <button
+                                    v-else
+                                    class="inline-flex size-8 items-center justify-center rounded-md text-xs font-medium transition-colors"
+                                    :class="p === dialogPage ? 'bg-primary text-primary-foreground' : 'border hover:bg-muted'"
+                                    @click="dialogPage = p"
+                                >
+                                    {{ p }}
+                                </button>
+                            </template>
+                            <button
+                                class="inline-flex size-8 items-center justify-center rounded-md border transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
+                                :disabled="dialogPage >= dialogTotalPages"
+                                @click="dialogPage++"
+                            >
+                                <ChevronRight class="size-4" />
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </DialogScrollContent>
+        </Dialog>
     </AppLayout>
 </template>

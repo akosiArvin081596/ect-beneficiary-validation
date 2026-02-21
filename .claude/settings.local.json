@@ -40,7 +40,11 @@
       "WebFetch(domain:www.philatlas.com)",
       "WebFetch(domain:psa.gov.ph)",
       "Bash(php artisan admin:create:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(php artisan:*)",
+      "mcp__laravel-boost__browser-logs",
+      "mcp__laravel-boost__last-error",
+      "Bash(npm ls:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

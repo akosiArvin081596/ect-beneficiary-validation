@@ -11,6 +11,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('dashboard/beneficiaries-by-barangay', [DashboardController::class, 'beneficiariesByBarangay'])->middleware(['auth', 'verified'])->name('dashboard.beneficiaries-by-barangay');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('beneficiaries', [BeneficiaryController::class, 'index'])->name('beneficiaries.index');

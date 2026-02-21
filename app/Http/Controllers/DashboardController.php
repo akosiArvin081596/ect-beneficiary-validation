@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Beneficiary;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -36,5 +37,26 @@ class DashboardController extends Controller
                 ->limit(10)
                 ->get(),
         ]);
+    }
+
+    public function beneficiariesByBarangay(Request $request): JsonResponse
+    {
+        $request->validate([
+            'municipality' => ['required', 'string'],
+            'barangay' => ['required', 'string'],
+            'damage_type' => ['required', 'in:totally,partially,all'],
+        ]);
+
+        $query = Beneficiary::select(['id', 'first_name', 'last_name', 'middle_name', 'extension_name', 'sex', 'birth_date', 'classify_extent_of_damaged_house', 'purok'])
+            ->where('municipality', $request->municipality)
+            ->where('barangay', $request->barangay);
+
+        if ($request->damage_type === 'totally') {
+            $query->where('classify_extent_of_damaged_house', 'Totally Damaged (Severely)');
+        } elseif ($request->damage_type === 'partially') {
+            $query->where('classify_extent_of_damaged_house', 'Partially Damaged (Slightly)');
+        }
+
+        return response()->json($query->orderBy('last_name')->orderBy('first_name')->get());
     }
 }
