@@ -1,11 +1,30 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
-import { WifiOff, Users, Home, AlertTriangle, ShieldCheck, ShieldAlert, ShieldX, MapPin, Clock, Loader2, ChevronLeft, ChevronRight, Search } from 'lucide-vue-next';
+import {
+    WifiOff,
+    Users,
+    Home,
+    AlertTriangle,
+    ShieldCheck,
+    ShieldAlert,
+    ShieldX,
+    MapPin,
+    Clock,
+    Loader2,
+    ChevronLeft,
+    ChevronRight,
+    Search,
+} from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogHeader, DialogTitle, DialogScrollContent } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogHeader,
+    DialogTitle,
+    DialogScrollContent,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { isOnline, useOfflineQueue } from '@/composables/useOfflineQueue';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -141,16 +160,24 @@ const filteredBeneficiaries = computed(() => {
     let list = dialogBeneficiaries.value;
 
     if (dialogDamageFilter.value === 'totally') {
-        list = list.filter((b) => b.classify_extent_of_damaged_house.startsWith('Totally'));
+        list = list.filter((b) =>
+            b.classify_extent_of_damaged_house.startsWith('Totally'),
+        );
     } else if (dialogDamageFilter.value === 'partially') {
-        list = list.filter((b) => b.classify_extent_of_damaged_house.startsWith('Partially'));
+        list = list.filter((b) =>
+            b.classify_extent_of_damaged_house.startsWith('Partially'),
+        );
     }
 
     const q = dialogSearch.value.trim().toLowerCase();
     if (q) {
         list = list.filter((b) => {
-            const name = `${b.last_name} ${b.first_name} ${b.middle_name ?? ''} ${b.extension_name ?? ''}`.toLowerCase();
-            return name.includes(q) || (b.purok && b.purok.toLowerCase().includes(q));
+            const name =
+                `${b.last_name} ${b.first_name} ${b.middle_name ?? ''} ${b.extension_name ?? ''}`.toLowerCase();
+            return (
+                name.includes(q) ||
+                (b.purok && b.purok.toLowerCase().includes(q))
+            );
         });
     }
 
@@ -161,7 +188,9 @@ watch([dialogSearch, dialogDamageFilter], () => {
     dialogPage.value = 1;
 });
 
-const dialogTotalPages = computed(() => Math.max(1, Math.ceil(filteredBeneficiaries.value.length / perPage)));
+const dialogTotalPages = computed(() =>
+    Math.max(1, Math.ceil(filteredBeneficiaries.value.length / perPage)),
+);
 const paginatedBeneficiaries = computed(() => {
     const start = (dialogPage.value - 1) * perPage;
     return filteredBeneficiaries.value.slice(start, start + perPage);
@@ -178,7 +207,11 @@ const visiblePages = computed(() => {
 
     pages.push(1);
     if (current > 3) pages.push('...');
-    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+    for (
+        let i = Math.max(2, current - 1);
+        i <= Math.min(total - 1, current + 1);
+        i++
+    ) {
         pages.push(i);
     }
     if (current < total - 2) pages.push('...');
@@ -186,7 +219,11 @@ const visiblePages = computed(() => {
     return pages;
 });
 
-async function openBeneficiaryList(municipality: string, barangay: string, damageType: 'totally' | 'partially' | 'all') {
+async function openBeneficiaryList(
+    municipality: string,
+    barangay: string,
+    damageType: 'totally' | 'partially' | 'all',
+) {
     const labels: Record<string, string> = {
         totally: 'Totally Damaged',
         partially: 'Partially Damaged',
@@ -201,9 +238,12 @@ async function openBeneficiaryList(municipality: string, barangay: string, damag
     dialogOpen.value = true;
 
     try {
-        const { data } = await axios.get('/dashboard/beneficiaries-by-barangay', {
-            params: { municipality, barangay, damage_type: damageType },
-        });
+        const { data } = await axios.get(
+            '/dashboard/beneficiaries-by-barangay',
+            {
+                params: { municipality, barangay, damage_type: damageType },
+            },
+        );
         dialogBeneficiaries.value = data;
     } finally {
         dialogLoading.value = false;
@@ -222,68 +262,131 @@ function fullName(b: BeneficiaryListItem): string {
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4 md:p-6">
+        <div
+            class="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4 md:p-6"
+        >
             <!-- Online state -->
             <template v-if="isOnline">
                 <!-- Summary Cards -->
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <!-- Total -->
                     <Card class="relative overflow-hidden">
-                        <div class="absolute inset-y-0 right-0 w-1 bg-blue-500" />
-                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium text-muted-foreground">Total Beneficiaries</CardTitle>
+                        <div
+                            class="absolute inset-y-0 right-0 w-1 bg-blue-500"
+                        />
+                        <CardHeader
+                            class="flex flex-row items-center justify-between space-y-0 pb-2"
+                        >
+                            <CardTitle
+                                class="text-sm font-medium text-muted-foreground"
+                                >Total Beneficiaries</CardTitle
+                            >
                             <div class="rounded-lg bg-blue-500/10 p-2">
                                 <Users class="size-4 text-blue-500" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div class="text-3xl font-bold tracking-tight">{{ props.total_beneficiaries.toLocaleString() }}</div>
-                            <p class="mt-1 text-xs text-muted-foreground">Total registered records</p>
+                            <div class="text-3xl font-bold tracking-tight">
+                                {{ props.total_beneficiaries.toLocaleString() }}
+                            </div>
+                            <p class="mt-1 text-xs text-muted-foreground">
+                                Total registered records
+                            </p>
                         </CardContent>
                     </Card>
 
                     <!-- Totally Damaged -->
                     <Card class="relative overflow-hidden">
-                        <div class="absolute inset-y-0 right-0 w-1 bg-red-500" />
-                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium text-muted-foreground">Totally Damaged</CardTitle>
+                        <div
+                            class="absolute inset-y-0 right-0 w-1 bg-red-500"
+                        />
+                        <CardHeader
+                            class="flex flex-row items-center justify-between space-y-0 pb-2"
+                        >
+                            <CardTitle
+                                class="text-sm font-medium text-muted-foreground"
+                                >Totally Damaged</CardTitle
+                            >
                             <div class="rounded-lg bg-red-500/10 p-2">
                                 <Home class="size-4 text-red-500" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div class="text-3xl font-bold tracking-tight">{{ props.totally_damaged.toLocaleString() }}</div>
+                            <div class="text-3xl font-bold tracking-tight">
+                                {{ props.totally_damaged.toLocaleString() }}
+                            </div>
                             <div class="mt-2 flex items-center gap-2">
-                                <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                                <div
+                                    class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
+                                >
                                     <div
                                         class="h-full rounded-full bg-red-500 transition-all duration-500"
-                                        :style="{ width: pct(totally_damaged, total_beneficiaries) + '%' }"
+                                        :style="{
+                                            width:
+                                                pct(
+                                                    totally_damaged,
+                                                    total_beneficiaries,
+                                                ) + '%',
+                                        }"
                                     />
                                 </div>
-                                <span class="text-xs font-medium text-muted-foreground">{{ pct(totally_damaged, total_beneficiaries) }}%</span>
+                                <span
+                                    class="text-xs font-medium text-muted-foreground"
+                                    >{{
+                                        pct(
+                                            totally_damaged,
+                                            total_beneficiaries,
+                                        )
+                                    }}%</span
+                                >
                             </div>
                         </CardContent>
                     </Card>
 
                     <!-- Partially Damaged -->
                     <Card class="relative overflow-hidden">
-                        <div class="absolute inset-y-0 right-0 w-1 bg-amber-500" />
-                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium text-muted-foreground">Partially Damaged</CardTitle>
+                        <div
+                            class="absolute inset-y-0 right-0 w-1 bg-amber-500"
+                        />
+                        <CardHeader
+                            class="flex flex-row items-center justify-between space-y-0 pb-2"
+                        >
+                            <CardTitle
+                                class="text-sm font-medium text-muted-foreground"
+                                >Partially Damaged</CardTitle
+                            >
                             <div class="rounded-lg bg-amber-500/10 p-2">
                                 <AlertTriangle class="size-4 text-amber-500" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div class="text-3xl font-bold tracking-tight">{{ props.partially_damaged.toLocaleString() }}</div>
+                            <div class="text-3xl font-bold tracking-tight">
+                                {{ props.partially_damaged.toLocaleString() }}
+                            </div>
                             <div class="mt-2 flex items-center gap-2">
-                                <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                                <div
+                                    class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
+                                >
                                     <div
                                         class="h-full rounded-full bg-amber-500 transition-all duration-500"
-                                        :style="{ width: pct(partially_damaged, total_beneficiaries) + '%' }"
+                                        :style="{
+                                            width:
+                                                pct(
+                                                    partially_damaged,
+                                                    total_beneficiaries,
+                                                ) + '%',
+                                        }"
                                     />
                                 </div>
-                                <span class="text-xs font-medium text-muted-foreground">{{ pct(partially_damaged, total_beneficiaries) }}%</span>
+                                <span
+                                    class="text-xs font-medium text-muted-foreground"
+                                    >{{
+                                        pct(
+                                            partially_damaged,
+                                            total_beneficiaries,
+                                        )
+                                    }}%</span
+                                >
                             </div>
                         </CardContent>
                     </Card>
@@ -292,67 +395,136 @@ function fullName(b: BeneficiaryListItem): string {
                 <!-- NHTS-PR Cards -->
                 <div class="grid gap-4 sm:grid-cols-3">
                     <Card class="relative overflow-hidden">
-                        <div class="absolute inset-y-0 right-0 w-1 bg-emerald-500" />
-                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium text-muted-foreground">NHTS-PR Poor</CardTitle>
+                        <div
+                            class="absolute inset-y-0 right-0 w-1 bg-emerald-500"
+                        />
+                        <CardHeader
+                            class="flex flex-row items-center justify-between space-y-0 pb-2"
+                        >
+                            <CardTitle
+                                class="text-sm font-medium text-muted-foreground"
+                                >NHTS-PR Poor</CardTitle
+                            >
                             <div class="rounded-lg bg-emerald-500/10 p-2">
                                 <ShieldCheck class="size-4 text-emerald-500" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div class="text-3xl font-bold tracking-tight">{{ props.nhts_poor.toLocaleString() }}</div>
+                            <div class="text-3xl font-bold tracking-tight">
+                                {{ props.nhts_poor.toLocaleString() }}
+                            </div>
                             <div class="mt-2 flex items-center gap-2">
-                                <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                                <div
+                                    class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
+                                >
                                     <div
                                         class="h-full rounded-full bg-emerald-500 transition-all duration-500"
-                                        :style="{ width: pct(nhts_poor, total_beneficiaries) + '%' }"
+                                        :style="{
+                                            width:
+                                                pct(
+                                                    nhts_poor,
+                                                    total_beneficiaries,
+                                                ) + '%',
+                                        }"
                                     />
                                 </div>
-                                <span class="text-xs font-medium text-muted-foreground">{{ pct(nhts_poor, total_beneficiaries) }}%</span>
+                                <span
+                                    class="text-xs font-medium text-muted-foreground"
+                                    >{{
+                                        pct(nhts_poor, total_beneficiaries)
+                                    }}%</span
+                                >
                             </div>
                         </CardContent>
                     </Card>
 
                     <Card class="relative overflow-hidden">
-                        <div class="absolute inset-y-0 right-0 w-1 bg-yellow-500" />
-                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium text-muted-foreground">NHTS-PR Near Poor</CardTitle>
+                        <div
+                            class="absolute inset-y-0 right-0 w-1 bg-yellow-500"
+                        />
+                        <CardHeader
+                            class="flex flex-row items-center justify-between space-y-0 pb-2"
+                        >
+                            <CardTitle
+                                class="text-sm font-medium text-muted-foreground"
+                                >NHTS-PR Near Poor</CardTitle
+                            >
                             <div class="rounded-lg bg-yellow-500/10 p-2">
                                 <ShieldAlert class="size-4 text-yellow-500" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div class="text-3xl font-bold tracking-tight">{{ props.nhts_near_poor.toLocaleString() }}</div>
+                            <div class="text-3xl font-bold tracking-tight">
+                                {{ props.nhts_near_poor.toLocaleString() }}
+                            </div>
                             <div class="mt-2 flex items-center gap-2">
-                                <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                                <div
+                                    class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
+                                >
                                     <div
                                         class="h-full rounded-full bg-yellow-500 transition-all duration-500"
-                                        :style="{ width: pct(nhts_near_poor, total_beneficiaries) + '%' }"
+                                        :style="{
+                                            width:
+                                                pct(
+                                                    nhts_near_poor,
+                                                    total_beneficiaries,
+                                                ) + '%',
+                                        }"
                                     />
                                 </div>
-                                <span class="text-xs font-medium text-muted-foreground">{{ pct(nhts_near_poor, total_beneficiaries) }}%</span>
+                                <span
+                                    class="text-xs font-medium text-muted-foreground"
+                                    >{{
+                                        pct(
+                                            nhts_near_poor,
+                                            total_beneficiaries,
+                                        )
+                                    }}%</span
+                                >
                             </div>
                         </CardContent>
                     </Card>
 
                     <Card class="relative overflow-hidden">
-                        <div class="absolute inset-y-0 right-0 w-1 bg-slate-400" />
-                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium text-muted-foreground">NHTS-PR Not Poor</CardTitle>
+                        <div
+                            class="absolute inset-y-0 right-0 w-1 bg-slate-400"
+                        />
+                        <CardHeader
+                            class="flex flex-row items-center justify-between space-y-0 pb-2"
+                        >
+                            <CardTitle
+                                class="text-sm font-medium text-muted-foreground"
+                                >NHTS-PR Not Poor</CardTitle
+                            >
                             <div class="rounded-lg bg-slate-400/10 p-2">
                                 <ShieldX class="size-4 text-slate-400" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div class="text-3xl font-bold tracking-tight">{{ props.nhts_not_poor.toLocaleString() }}</div>
+                            <div class="text-3xl font-bold tracking-tight">
+                                {{ props.nhts_not_poor.toLocaleString() }}
+                            </div>
                             <div class="mt-2 flex items-center gap-2">
-                                <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                                <div
+                                    class="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
+                                >
                                     <div
                                         class="h-full rounded-full bg-slate-400 transition-all duration-500"
-                                        :style="{ width: pct(nhts_not_poor, total_beneficiaries) + '%' }"
+                                        :style="{
+                                            width:
+                                                pct(
+                                                    nhts_not_poor,
+                                                    total_beneficiaries,
+                                                ) + '%',
+                                        }"
                                     />
                                 </div>
-                                <span class="text-xs font-medium text-muted-foreground">{{ pct(nhts_not_poor, total_beneficiaries) }}%</span>
+                                <span
+                                    class="text-xs font-medium text-muted-foreground"
+                                    >{{
+                                        pct(nhts_not_poor, total_beneficiaries)
+                                    }}%</span
+                                >
                             </div>
                         </CardContent>
                     </Card>
@@ -360,78 +532,162 @@ function fullName(b: BeneficiaryListItem): string {
 
                 <!-- LGU / Barangay Breakdown -->
                 <Card>
-                    <CardHeader class="flex flex-row items-center justify-between">
+                    <CardHeader
+                        class="flex flex-row items-center justify-between"
+                    >
                         <div class="flex items-center gap-2">
                             <div class="rounded-lg bg-violet-500/10 p-2">
                                 <MapPin class="size-4 text-violet-500" />
                             </div>
                             <CardTitle>Breakdown by LGU / Barangay</CardTitle>
                         </div>
-                        <Badge variant="secondary">{{ props.by_municipality.length }} LGUs</Badge>
+                        <Badge variant="secondary"
+                            >{{ props.by_municipality.length }} LGUs</Badge
+                        >
                     </CardHeader>
                     <CardContent>
-                        <div v-if="props.by_municipality.length === 0" class="py-8 text-center text-sm text-muted-foreground">
+                        <div
+                            v-if="props.by_municipality.length === 0"
+                            class="py-8 text-center text-sm text-muted-foreground"
+                        >
                             No data yet.
                         </div>
                         <div v-else class="space-y-6">
-                            <div v-for="(row, idx) in props.by_municipality" :key="row.municipality">
+                            <div
+                                v-for="(row, idx) in props.by_municipality"
+                                :key="row.municipality"
+                            >
                                 <!-- Municipality header -->
                                 <div class="space-y-2">
-                                    <div class="flex items-center justify-between">
+                                    <div
+                                        class="flex items-center justify-between"
+                                    >
                                         <div class="flex items-center gap-2">
-                                            <div class="size-2.5 rounded-full" :class="barColors[idx % barColors.length]" />
-                                            <span class="text-sm font-semibold">{{ row.municipality }}</span>
+                                            <div
+                                                class="size-2.5 rounded-full"
+                                                :class="
+                                                    barColors[
+                                                        idx % barColors.length
+                                                    ]
+                                                "
+                                            />
+                                            <span
+                                                class="text-sm font-semibold"
+                                                >{{ row.municipality }}</span
+                                            >
                                         </div>
                                         <div class="flex items-center gap-2">
-                                            <span class="text-sm font-bold">{{ row.count.toLocaleString() }}</span>
-                                            <Badge variant="outline" class="text-xs">{{ pct(row.count, total_beneficiaries) }}%</Badge>
+                                            <span class="text-sm font-bold">{{
+                                                row.count.toLocaleString()
+                                            }}</span>
+                                            <Badge
+                                                variant="outline"
+                                                class="text-xs"
+                                                >{{
+                                                    pct(
+                                                        row.count,
+                                                        total_beneficiaries,
+                                                    )
+                                                }}%</Badge
+                                            >
                                         </div>
                                     </div>
                                     <!-- Municipality progress bar -->
-                                    <div class="h-2 overflow-hidden rounded-full bg-muted">
+                                    <div
+                                        class="h-2 overflow-hidden rounded-full bg-muted"
+                                    >
                                         <div
                                             class="h-full rounded-full transition-all duration-700"
-                                            :class="barColors[idx % barColors.length]"
-                                            :style="{ width: pct(row.count, maxMunicipalityCount) + '%' }"
+                                            :class="
+                                                barColors[
+                                                    idx % barColors.length
+                                                ]
+                                            "
+                                            :style="{
+                                                width:
+                                                    pct(
+                                                        row.count,
+                                                        maxMunicipalityCount,
+                                                    ) + '%',
+                                            }"
                                         />
                                     </div>
                                     <!-- Barangay sub-rows -->
                                     <div
-                                        v-if="barangaysByMunicipality[row.municipality]?.length"
+                                        v-if="
+                                            barangaysByMunicipality[
+                                                row.municipality
+                                            ]?.length
+                                        "
                                         class="mt-3 overflow-hidden rounded-lg border"
                                     >
                                         <!-- Table header -->
-                                        <div class="grid grid-cols-[1fr_72px_72px_60px] items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs font-semibold text-muted-foreground">
+                                        <div
+                                            class="grid grid-cols-[1fr_72px_72px_60px] items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs font-semibold text-muted-foreground"
+                                        >
                                             <span>Barangay</span>
-                                            <span class="flex items-center justify-center gap-1 text-red-500">
+                                            <span
+                                                class="flex items-center justify-center gap-1 text-red-500"
+                                            >
                                                 <Home class="size-3" /> Totally
                                             </span>
-                                            <span class="flex items-center justify-center gap-1 text-amber-500">
-                                                <AlertTriangle class="size-3" /> Partially
+                                            <span
+                                                class="flex items-center justify-center gap-1 text-amber-500"
+                                            >
+                                                <AlertTriangle class="size-3" />
+                                                Partially
                                             </span>
-                                            <span class="text-center">Total</span>
+                                            <span class="text-center"
+                                                >Total</span
+                                            >
                                         </div>
                                         <!-- Table rows -->
                                         <div
-                                            v-for="(brgy, brgyIdx) in barangaysByMunicipality[row.municipality]"
+                                            v-for="(
+                                                brgy, brgyIdx
+                                            ) in barangaysByMunicipality[
+                                                row.municipality
+                                            ]"
                                             :key="brgy.barangay"
                                             class="grid cursor-pointer grid-cols-[1fr_72px_72px_60px] items-center gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
-                                            :class="{ 'border-b': brgyIdx < barangaysByMunicipality[row.municipality].length - 1 }"
-                                            @click="openBeneficiaryList(brgy.municipality, brgy.barangay, 'all')"
+                                            :class="{
+                                                'border-b':
+                                                    brgyIdx <
+                                                    barangaysByMunicipality[
+                                                        row.municipality
+                                                    ].length -
+                                                        1,
+                                            }"
+                                            @click="
+                                                openBeneficiaryList(
+                                                    brgy.municipality,
+                                                    brgy.barangay,
+                                                    'all',
+                                                )
+                                            "
                                         >
-                                            <span class="truncate text-sm font-medium text-primary underline-offset-2 hover:underline">{{ brgy.barangay }}</span>
+                                            <span
+                                                class="truncate text-sm font-medium text-primary underline-offset-2 hover:underline"
+                                                >{{ brgy.barangay }}</span
+                                            >
                                             <div class="flex justify-center">
-                                                <span class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md bg-red-500/10 px-2 py-0.5 text-xs font-bold text-red-600 dark:text-red-400">
+                                                <span
+                                                    class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md bg-red-500/10 px-2 py-0.5 text-xs font-bold text-red-600 dark:text-red-400"
+                                                >
                                                     {{ brgy.totally_damaged }}
                                                 </span>
                                             </div>
                                             <div class="flex justify-center">
-                                                <span class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+                                                <span
+                                                    class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-400"
+                                                >
                                                     {{ brgy.partially_damaged }}
                                                 </span>
                                             </div>
                                             <div class="flex justify-center">
-                                                <span class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md bg-muted px-2 py-0.5 text-xs font-bold">
+                                                <span
+                                                    class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md bg-muted px-2 py-0.5 text-xs font-bold"
+                                                >
                                                     {{ brgy.count }}
                                                 </span>
                                             </div>
@@ -445,7 +701,9 @@ function fullName(b: BeneficiaryListItem): string {
 
                 <!-- Recent Entries -->
                 <Card>
-                    <CardHeader class="flex flex-row items-center justify-between">
+                    <CardHeader
+                        class="flex flex-row items-center justify-between"
+                    >
                         <div class="flex items-center gap-2">
                             <div class="rounded-lg bg-cyan-500/10 p-2">
                                 <Clock class="size-4 text-cyan-500" />
@@ -455,7 +713,10 @@ function fullName(b: BeneficiaryListItem): string {
                         <Badge variant="secondary">Last 10</Badge>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="props.recent_beneficiaries.length === 0" class="py-8 text-center text-sm text-muted-foreground">
+                        <div
+                            v-if="props.recent_beneficiaries.length === 0"
+                            class="py-8 text-center text-sm text-muted-foreground"
+                        >
                             No entries yet.
                         </div>
                         <div v-else class="space-y-3">
@@ -465,10 +726,18 @@ function fullName(b: BeneficiaryListItem): string {
                                 class="flex items-center justify-between rounded-lg border px-4 py-3 transition-colors hover:bg-muted/30"
                             >
                                 <div class="min-w-0 flex-1">
-                                    <p class="truncate text-sm font-medium">{{ formatName(b) }}</p>
-                                    <p class="text-xs text-muted-foreground">{{ b.municipality }} &middot; {{ b.barangay }}</p>
+                                    <p class="truncate text-sm font-medium">
+                                        {{ formatName(b) }}
+                                    </p>
+                                    <p class="text-xs text-muted-foreground">
+                                        {{ b.municipality }} &middot;
+                                        {{ b.barangay }}
+                                    </p>
                                 </div>
-                                <span class="ml-4 shrink-0 text-xs text-muted-foreground">{{ timeAgo(b.created_at) }}</span>
+                                <span
+                                    class="ml-4 shrink-0 text-xs text-muted-foreground"
+                                    >{{ timeAgo(b.created_at) }}</span
+                                >
                             </div>
                         </div>
                     </CardContent>
@@ -479,16 +748,27 @@ function fullName(b: BeneficiaryListItem): string {
             <template v-else>
                 <div class="flex flex-1 items-center justify-center">
                     <Card class="w-full max-w-md text-center">
-                        <CardContent class="flex flex-col items-center gap-4 pt-6">
+                        <CardContent
+                            class="flex flex-col items-center gap-4 pt-6"
+                        >
                             <WifiOff class="size-12 text-muted-foreground" />
                             <div>
-                                <h2 class="text-lg font-semibold">You're currently offline</h2>
+                                <h2 class="text-lg font-semibold">
+                                    You're currently offline
+                                </h2>
                                 <p class="mt-1 text-sm text-muted-foreground">
-                                    Dashboard statistics will be available when you reconnect.
+                                    Dashboard statistics will be available when
+                                    you reconnect.
                                 </p>
                             </div>
-                            <p v-if="pendingCount > 0" class="text-sm text-muted-foreground">
-                                {{ pendingCount }} entry{{ pendingCount === 1 ? '' : 'ies' }} pending sync.
+                            <p
+                                v-if="pendingCount > 0"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{ pendingCount }} entry{{
+                                    pendingCount === 1 ? '' : 'ies'
+                                }}
+                                pending sync.
                             </p>
                         </CardContent>
                     </Card>
@@ -504,12 +784,20 @@ function fullName(b: BeneficiaryListItem): string {
                 </DialogHeader>
 
                 <!-- Loading -->
-                <div v-if="dialogLoading" class="flex items-center justify-center py-12">
-                    <Loader2 class="size-6 animate-spin text-muted-foreground" />
+                <div
+                    v-if="dialogLoading"
+                    class="flex items-center justify-center py-12"
+                >
+                    <Loader2
+                        class="size-6 animate-spin text-muted-foreground"
+                    />
                 </div>
 
                 <!-- Empty -->
-                <div v-else-if="dialogBeneficiaries.length === 0" class="py-12 text-center text-sm text-muted-foreground">
+                <div
+                    v-else-if="dialogBeneficiaries.length === 0"
+                    class="py-12 text-center text-sm text-muted-foreground"
+                >
                     No beneficiaries found.
                 </div>
 
@@ -518,12 +806,18 @@ function fullName(b: BeneficiaryListItem): string {
                     <!-- Search & filter -->
                     <div class="flex items-center gap-2">
                         <div class="relative flex-1">
-                            <Search class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input v-model="dialogSearch" placeholder="Search by name or purok..." class="pl-9" />
+                            <Search
+                                class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+                            />
+                            <Input
+                                v-model="dialogSearch"
+                                placeholder="Search by name or purok..."
+                                class="pl-9"
+                            />
                         </div>
                         <select
                             v-model="dialogDamageFilter"
-                            class="h-9 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                            class="h-9 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
                         >
                             <option value="all">All Damage Types</option>
                             <option value="totally">Totally Damaged</option>
@@ -532,13 +826,21 @@ function fullName(b: BeneficiaryListItem): string {
                     </div>
 
                     <!-- No results after filter -->
-                    <div v-if="filteredBeneficiaries.length === 0" class="py-8 text-center text-sm text-muted-foreground">
+                    <div
+                        v-if="filteredBeneficiaries.length === 0"
+                        class="py-8 text-center text-sm text-muted-foreground"
+                    >
                         No matching beneficiaries found.
                     </div>
 
-                    <div v-else class="min-h-0 flex-1 overflow-auto rounded-lg border">
+                    <div
+                        v-else
+                        class="min-h-0 flex-1 overflow-auto rounded-lg border"
+                    >
                         <!-- Table header -->
-                        <div class="grid grid-cols-[40px_minmax(0,1fr)_70px_100px_100px] items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs font-semibold text-muted-foreground">
+                        <div
+                            class="grid grid-cols-[40px_minmax(0,1fr)_70px_100px_100px] items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs font-semibold text-muted-foreground"
+                        >
                             <span class="text-center">#</span>
                             <span>Name</span>
                             <span class="text-center">Sex</span>
@@ -550,39 +852,84 @@ function fullName(b: BeneficiaryListItem): string {
                             v-for="(b, i) in paginatedBeneficiaries"
                             :key="b.id"
                             class="grid grid-cols-[40px_minmax(0,1fr)_70px_100px_100px] items-center gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
-                            :class="{ 'border-b': i < paginatedBeneficiaries.length - 1 }"
+                            :class="{
+                                'border-b':
+                                    i < paginatedBeneficiaries.length - 1,
+                            }"
                         >
-                            <span class="text-center text-xs text-muted-foreground">{{ (dialogPage - 1) * perPage + i + 1 }}</span>
+                            <span
+                                class="text-center text-xs text-muted-foreground"
+                                >{{ (dialogPage - 1) * perPage + i + 1 }}</span
+                            >
                             <div class="min-w-0">
-                                <p class="truncate text-sm font-medium">{{ fullName(b) }}</p>
-                                <p v-if="b.purok" class="truncate text-xs text-muted-foreground">{{ b.purok }}</p>
+                                <p class="truncate text-sm font-medium">
+                                    {{ fullName(b) }}
+                                </p>
+                                <p
+                                    v-if="b.purok"
+                                    class="truncate text-xs text-muted-foreground"
+                                >
+                                    {{ b.purok }}
+                                </p>
                             </div>
                             <span class="text-center text-xs">{{ b.sex }}</span>
-                            <span class="text-center text-xs">{{ formatDate(b.birth_date) }}</span>
+                            <span class="text-center text-xs">{{
+                                formatDate(b.birth_date)
+                            }}</span>
                             <div class="flex justify-center">
                                 <span
                                     class="inline-flex items-center justify-center rounded-md px-1.5 py-0.5 text-[10px] font-bold"
-                                    :class="b.classify_extent_of_damaged_house.startsWith('Totally')
-                                        ? 'bg-red-500/10 text-red-600 dark:text-red-400'
-                                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'"
+                                    :class="
+                                        b.classify_extent_of_damaged_house.startsWith(
+                                            'Totally',
+                                        )
+                                            ? 'bg-red-500/10 text-red-600 dark:text-red-400'
+                                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                    "
                                 >
-                                    {{ b.classify_extent_of_damaged_house.startsWith('Totally') ? 'Totally' : 'Partially' }}
+                                    {{
+                                        b.classify_extent_of_damaged_house.startsWith(
+                                            'Totally',
+                                        )
+                                            ? 'Totally'
+                                            : 'Partially'
+                                    }}
                                 </span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Pagination footer -->
-                    <div v-if="filteredBeneficiaries.length > 0" class="flex items-center justify-between pt-2">
+                    <div
+                        v-if="filteredBeneficiaries.length > 0"
+                        class="flex items-center justify-between pt-2"
+                    >
                         <p class="text-xs text-muted-foreground">
-                            <template v-if="filteredBeneficiaries.length !== dialogBeneficiaries.length">
-                                {{ filteredBeneficiaries.length }} of {{ dialogBeneficiaries.length }} beneficiar{{ dialogBeneficiaries.length === 1 ? 'y' : 'ies' }}
+                            <template
+                                v-if="
+                                    filteredBeneficiaries.length !==
+                                    dialogBeneficiaries.length
+                                "
+                            >
+                                {{ filteredBeneficiaries.length }} of
+                                {{ dialogBeneficiaries.length }} beneficiar{{
+                                    dialogBeneficiaries.length === 1
+                                        ? 'y'
+                                        : 'ies'
+                                }}
                             </template>
                             <template v-else>
-                                {{ dialogBeneficiaries.length }} beneficiar{{ dialogBeneficiaries.length === 1 ? 'y' : 'ies' }}
+                                {{ dialogBeneficiaries.length }} beneficiar{{
+                                    dialogBeneficiaries.length === 1
+                                        ? 'y'
+                                        : 'ies'
+                                }}
                             </template>
                         </p>
-                        <div v-if="dialogTotalPages > 1" class="flex items-center gap-1">
+                        <div
+                            v-if="dialogTotalPages > 1"
+                            class="flex items-center gap-1"
+                        >
                             <button
                                 class="inline-flex size-8 items-center justify-center rounded-md border transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
                                 :disabled="dialogPage <= 1"
@@ -591,11 +938,19 @@ function fullName(b: BeneficiaryListItem): string {
                                 <ChevronLeft class="size-4" />
                             </button>
                             <template v-for="(p, i) in visiblePages" :key="i">
-                                <span v-if="p === '...'" class="px-1 text-xs text-muted-foreground">...</span>
+                                <span
+                                    v-if="p === '...'"
+                                    class="px-1 text-xs text-muted-foreground"
+                                    >...</span
+                                >
                                 <button
                                     v-else
                                     class="inline-flex size-8 items-center justify-center rounded-md text-xs font-medium transition-colors"
-                                    :class="p === dialogPage ? 'bg-primary text-primary-foreground' : 'border hover:bg-muted'"
+                                    :class="
+                                        p === dialogPage
+                                            ? 'bg-primary text-primary-foreground'
+                                            : 'border hover:bg-muted'
+                                    "
                                     @click="dialogPage = p"
                                 >
                                     {{ p }}

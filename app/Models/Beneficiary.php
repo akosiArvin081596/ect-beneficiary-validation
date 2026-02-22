@@ -49,6 +49,7 @@ class Beneficiary extends Model
         'spouse_birth_date',
         'living_with_children',
         'living_with_relatives',
+        'marked_as_duplicate',
     ];
 
     protected function casts(): array
@@ -66,6 +67,7 @@ class Beneficiary extends Model
             'living_with_children' => 'boolean',
             'living_with_relatives' => 'boolean',
             'applicable_sector' => 'array',
+            'marked_as_duplicate' => 'boolean',
         ];
     }
 

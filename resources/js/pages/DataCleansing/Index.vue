@@ -4,12 +4,7 @@ import { useDebounceFn } from '@vueuse/core';
 import { ref, watch } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogClose,
@@ -201,8 +196,9 @@ function formatDate(dateStr: string): string {
                 <div class="flex items-center gap-3">
                     <h1 class="text-xl font-semibold">Data Cleansing</h1>
                     <Badge v-if="pagination.total > 0" variant="secondary">
-                        {{ pagination.total }} duplicate
-                        group{{ pagination.total === 1 ? '' : 's' }}
+                        {{ pagination.total }} duplicate group{{
+                            pagination.total === 1 ? '' : 's'
+                        }}
                     </Badge>
                 </div>
                 <Button
@@ -260,39 +256,25 @@ function formatDate(dateStr: string): string {
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="border-t bg-muted/50">
-                                    <th
-                                        class="px-4 py-2 text-left font-medium"
-                                    >
+                                    <th class="px-4 py-2 text-left font-medium">
                                         Keep
                                     </th>
-                                    <th
-                                        class="px-4 py-2 text-left font-medium"
-                                    >
+                                    <th class="px-4 py-2 text-left font-medium">
                                         Municipality
                                     </th>
-                                    <th
-                                        class="px-4 py-2 text-left font-medium"
-                                    >
+                                    <th class="px-4 py-2 text-left font-medium">
                                         Barangay
                                     </th>
-                                    <th
-                                        class="px-4 py-2 text-left font-medium"
-                                    >
+                                    <th class="px-4 py-2 text-left font-medium">
                                         Civil Status
                                     </th>
-                                    <th
-                                        class="px-4 py-2 text-left font-medium"
-                                    >
+                                    <th class="px-4 py-2 text-left font-medium">
                                         Damage
                                     </th>
-                                    <th
-                                        class="px-4 py-2 text-left font-medium"
-                                    >
+                                    <th class="px-4 py-2 text-left font-medium">
                                         Relations
                                     </th>
-                                    <th
-                                        class="px-4 py-2 text-left font-medium"
-                                    >
+                                    <th class="px-4 py-2 text-left font-medium">
                                         Date Added
                                     </th>
                                     <th
@@ -322,10 +304,7 @@ function formatDate(dateStr: string): string {
                                             "
                                             class="accent-green-600"
                                             @change="
-                                                selectKeep(
-                                                    group.key,
-                                                    record.id,
-                                                )
+                                                selectKeep(group.key, record.id)
                                             "
                                         />
                                     </td>
@@ -372,10 +351,7 @@ function formatDate(dateStr: string): string {
                 v-if="pagination.links.length > 3"
                 class="flex flex-wrap gap-1"
             >
-                <template
-                    v-for="link in pagination.links"
-                    :key="link.label"
-                >
+                <template v-for="link in pagination.links" :key="link.label">
                     <Link
                         v-if="link.url"
                         :href="link.url"
@@ -402,8 +378,8 @@ function formatDate(dateStr: string): string {
                 <DialogHeader>
                     <DialogTitle>Delete Record</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete this beneficiary
-                        record? This action cannot be undone.
+                        Are you sure you want to delete this beneficiary record?
+                        This action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
@@ -453,9 +429,15 @@ function formatDate(dateStr: string): string {
                 </DialogHeader>
                 <DialogFooter>
                     <DialogClose as-child>
-                        <Button variant="outline" :disabled="isMergingAll">Cancel</Button>
+                        <Button variant="outline" :disabled="isMergingAll"
+                            >Cancel</Button
+                        >
                     </DialogClose>
-                    <Button variant="destructive" :disabled="isMergingAll" @click="executeMergeAll">
+                    <Button
+                        variant="destructive"
+                        :disabled="isMergingAll"
+                        @click="executeMergeAll"
+                    >
                         {{ isMergingAll ? 'Merging...' : 'Merge All' }}
                     </Button>
                 </DialogFooter>

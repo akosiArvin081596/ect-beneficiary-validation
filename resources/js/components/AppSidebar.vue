@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, ClipboardList, Folder, LayoutGrid, Sparkles, Trash2, Users } from 'lucide-vue-next';
+import {
+    BookOpen,
+    ClipboardList,
+    Folder,
+    GitCompareArrows,
+    LayoutGrid,
+    Sparkles,
+    Trash2,
+    Users,
+} from 'lucide-vue-next';
 import { computed } from 'vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -17,6 +26,7 @@ import {
 import { dashboard } from '@/routes';
 import { index as beneficiariesIndex } from '@/routes/beneficiaries';
 import { index as dataCleansingIndex } from '@/routes/data-cleansing';
+import { index as deduplicationIndex } from '@/routes/deduplication';
 import { index as masterlistIndex } from '@/routes/masterlist';
 import { index as trashIndex } from '@/routes/trash';
 import { type NavItem } from '@/types';
@@ -43,6 +53,11 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: 'Data Cleansing',
             href: dataCleansingIndex(),
             icon: Sparkles,
+        });
+        items.push({
+            title: 'Deduplication',
+            href: deduplicationIndex(),
+            icon: GitCompareArrows,
         });
         items.push({
             title: 'Masterlist',

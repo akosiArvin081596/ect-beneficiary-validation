@@ -144,18 +144,30 @@ function exportUrl(): string {
                 />
                 <select
                     v-model="province"
-                    class="border-input bg-background text-foreground h-9 rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                    class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
                     <option value="">All Provinces</option>
-                    <option v-for="loc in locations" :key="loc.name" :value="loc.name">{{ loc.name }}</option>
+                    <option
+                        v-for="loc in locations"
+                        :key="loc.name"
+                        :value="loc.name"
+                    >
+                        {{ loc.name }}
+                    </option>
                 </select>
                 <select
                     v-model="municipality"
                     :disabled="!province"
-                    class="border-input bg-background text-foreground h-9 rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:opacity-50"
+                    class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50"
                 >
                     <option value="">All Municipalities</option>
-                    <option v-for="m in filteredMunicipalities" :key="m" :value="m">{{ m }}</option>
+                    <option
+                        v-for="m in filteredMunicipalities"
+                        :key="m"
+                        :value="m"
+                    >
+                        {{ m }}
+                    </option>
                 </select>
             </div>
 
@@ -163,21 +175,49 @@ function exportUrl(): string {
                 <table class="w-full text-sm whitespace-nowrap">
                     <thead>
                         <tr class="border-b bg-muted/50">
-                            <th class="px-4 py-3 text-left font-medium">Full Name</th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Full Name
+                            </th>
                             <th class="px-4 py-3 text-left font-medium">Sex</th>
-                            <th class="px-4 py-3 text-left font-medium">Birth Date</th>
-                            <th class="px-4 py-3 text-left font-medium">Civil Status</th>
-                            <th class="px-4 py-3 text-left font-medium">Province</th>
-                            <th class="px-4 py-3 text-left font-medium">Municipality</th>
-                            <th class="px-4 py-3 text-left font-medium">Barangay</th>
-                            <th class="px-4 py-3 text-left font-medium">Purok</th>
-                            <th class="px-4 py-3 text-left font-medium">Damage Class.</th>
-                            <th class="px-4 py-3 text-left font-medium">NHTS-PR</th>
-                            <th class="px-4 py-3 text-left font-medium">Sectors</th>
-                            <th class="px-4 py-3 text-center font-medium">Siblings</th>
-                            <th class="px-4 py-3 text-center font-medium">Children</th>
-                            <th class="px-4 py-3 text-center font-medium">Relatives</th>
-                            <th class="px-4 py-3 text-left font-medium">Date Added</th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Birth Date
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Civil Status
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Province
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Municipality
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Barangay
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Purok
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Damage Class.
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                NHTS-PR
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Sectors
+                            </th>
+                            <th class="px-4 py-3 text-center font-medium">
+                                Siblings
+                            </th>
+                            <th class="px-4 py-3 text-center font-medium">
+                                Children
+                            </th>
+                            <th class="px-4 py-3 text-center font-medium">
+                                Relatives
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Date Added
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -187,7 +227,9 @@ function exportUrl(): string {
                                 class="px-4 py-8 text-center text-muted-foreground"
                             >
                                 <template v-if="search">
-                                    No beneficiaries found matching "{{ search }}".
+                                    No beneficiaries found matching "{{
+                                        search
+                                    }}".
                                 </template>
                                 <template v-else>
                                     No beneficiaries recorded yet.
@@ -197,26 +239,42 @@ function exportUrl(): string {
                         <tr
                             v-for="b in beneficiaries.data"
                             :key="b.id"
-                            class="border-b last:border-0 cursor-pointer hover:bg-muted/30"
+                            class="cursor-pointer border-b last:border-0 hover:bg-muted/30"
                             @dblclick="router.visit(show(b.id).url)"
                         >
-                            <td class="px-4 py-3 font-medium">{{ fullName(b) }}</td>
+                            <td class="px-4 py-3 font-medium">
+                                {{ fullName(b) }}
+                            </td>
                             <td class="px-4 py-3">{{ b.sex }}</td>
-                            <td class="px-4 py-3">{{ formatDate(b.birth_date) }}</td>
+                            <td class="px-4 py-3">
+                                {{ formatDate(b.birth_date) }}
+                            </td>
                             <td class="px-4 py-3">{{ b.civil_status }}</td>
                             <td class="px-4 py-3">{{ b.province }}</td>
                             <td class="px-4 py-3">{{ b.municipality }}</td>
                             <td class="px-4 py-3">{{ b.barangay }}</td>
                             <td class="px-4 py-3">{{ b.purok || '—' }}</td>
-                            <td class="px-4 py-3">{{ b.classify_extent_of_damaged_house }}</td>
-                            <td class="px-4 py-3">{{ b.nhts_pr_classification || '—' }}</td>
+                            <td class="px-4 py-3">
+                                {{ b.classify_extent_of_damaged_house }}
+                            </td>
+                            <td class="px-4 py-3">
+                                {{ b.nhts_pr_classification || '—' }}
+                            </td>
                             <td class="px-4 py-3">
                                 {{ b.applicable_sector?.join(', ') || '—' }}
                             </td>
-                            <td class="px-4 py-3 text-center">{{ b.siblings_count }}</td>
-                            <td class="px-4 py-3 text-center">{{ b.children_count }}</td>
-                            <td class="px-4 py-3 text-center">{{ b.relatives_count }}</td>
-                            <td class="px-4 py-3">{{ formatDate(b.created_at) }}</td>
+                            <td class="px-4 py-3 text-center">
+                                {{ b.siblings_count }}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                {{ b.children_count }}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                {{ b.relatives_count }}
+                            </td>
+                            <td class="px-4 py-3">
+                                {{ formatDate(b.created_at) }}
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -237,7 +295,8 @@ function exportUrl(): string {
                                 ? 'border-primary bg-primary text-primary-foreground'
                                 : 'hover:bg-muted'
                         "
-                    ><span v-html="link.label" /></Link>
+                        ><span v-html="link.label"
+                    /></Link>
                     <span
                         v-else
                         class="rounded border px-3 py-1 text-sm text-muted-foreground opacity-50"

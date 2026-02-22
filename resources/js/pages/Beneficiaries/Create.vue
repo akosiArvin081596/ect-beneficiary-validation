@@ -183,7 +183,10 @@ watch(
         if (age >= 60 && !hasSenior) {
             form.applicable_sector.push('Senior Citizen');
         } else if (age < 60 && hasSenior) {
-            form.applicable_sector.splice(form.applicable_sector.indexOf('Senior Citizen'), 1);
+            form.applicable_sector.splice(
+                form.applicable_sector.indexOf('Senior Citizen'),
+                1,
+            );
         }
     },
 );

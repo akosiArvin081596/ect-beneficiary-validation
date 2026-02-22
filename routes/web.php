@@ -3,6 +3,7 @@
 use App\Http\Controllers\BeneficiaryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataCleansingController;
+use App\Http\Controllers\DeduplicationController;
 use App\Http\Controllers\MasterlistController;
 use App\Http\Controllers\TrashController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
+    Route::get('deduplication', [DeduplicationController::class, 'index'])->name('deduplication.index');
+    Route::patch('deduplication/{beneficiary}/mark', [DeduplicationController::class, 'markDuplicate'])->name('deduplication.mark');
+    Route::patch('deduplication/{beneficiary}/unmark', [DeduplicationController::class, 'unmarkDuplicate'])->name('deduplication.unmark');
+    Route::get('deduplication/export-clean-list', [DeduplicationController::class, 'exportCleanList'])->name('deduplication.export-clean-list');
+
     Route::get('data-cleansing', [DataCleansingController::class, 'index'])->name('data-cleansing.index');
     Route::delete('data-cleansing/{beneficiary}', [DataCleansingController::class, 'destroy'])->name('data-cleansing.destroy');
     Route::post('data-cleansing/merge', [DataCleansingController::class, 'merge'])->name('data-cleansing.merge');

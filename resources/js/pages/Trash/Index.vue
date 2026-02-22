@@ -40,9 +40,7 @@ const props = defineProps<{
     filters: { search: string };
 }>();
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Trash', href: index().url },
-];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Trash', href: index().url }];
 
 function fullName(b: Beneficiary): string {
     const parts = [b.last_name, b.first_name];
@@ -125,11 +123,21 @@ function restoreBeneficiary(b: Beneficiary) {
                 <table class="w-full text-sm whitespace-nowrap">
                     <thead>
                         <tr class="border-b bg-muted/50">
-                            <th class="px-4 py-3 text-left font-medium">Full Name</th>
-                            <th class="px-4 py-3 text-left font-medium">Municipality</th>
-                            <th class="px-4 py-3 text-left font-medium">Barangay</th>
-                            <th class="px-4 py-3 text-left font-medium">Date Deleted</th>
-                            <th class="px-4 py-3 text-right font-medium">Actions</th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Full Name
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Municipality
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Barangay
+                            </th>
+                            <th class="px-4 py-3 text-left font-medium">
+                                Date Deleted
+                            </th>
+                            <th class="px-4 py-3 text-right font-medium">
+                                Actions
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -139,11 +147,11 @@ function restoreBeneficiary(b: Beneficiary) {
                                 class="px-4 py-8 text-center text-muted-foreground"
                             >
                                 <template v-if="search">
-                                    No deleted beneficiaries found matching "{{ search }}".
+                                    No deleted beneficiaries found matching "{{
+                                        search
+                                    }}".
                                 </template>
-                                <template v-else>
-                                    Trash is empty.
-                                </template>
+                                <template v-else> Trash is empty. </template>
                             </td>
                         </tr>
                         <tr
@@ -151,17 +159,31 @@ function restoreBeneficiary(b: Beneficiary) {
                             :key="b.id"
                             class="border-b last:border-0"
                         >
-                            <td class="px-4 py-3 font-medium">{{ fullName(b) }}</td>
+                            <td class="px-4 py-3 font-medium">
+                                {{ fullName(b) }}
+                            </td>
                             <td class="px-4 py-3">{{ b.municipality }}</td>
                             <td class="px-4 py-3">{{ b.barangay }}</td>
-                            <td class="px-4 py-3">{{ formatDate(b.deleted_at) }}</td>
+                            <td class="px-4 py-3">
+                                {{ formatDate(b.deleted_at) }}
+                            </td>
                             <td class="px-4 py-3 text-right">
-                                <div class="flex items-center justify-end gap-2">
-                                    <Button size="sm" variant="outline" @click="restoreBeneficiary(b)">
+                                <div
+                                    class="flex items-center justify-end gap-2"
+                                >
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        @click="restoreBeneficiary(b)"
+                                    >
                                         <RotateCcw class="mr-1 h-3.5 w-3.5" />
                                         Restore
                                     </Button>
-                                    <Button size="sm" variant="destructive" @click="openDeleteDialog(b)">
+                                    <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        @click="openDeleteDialog(b)"
+                                    >
                                         <Trash2 class="mr-1 h-3.5 w-3.5" />
                                         Delete Permanently
                                     </Button>
@@ -187,7 +209,8 @@ function restoreBeneficiary(b: Beneficiary) {
                                 ? 'border-primary bg-primary text-primary-foreground'
                                 : 'hover:bg-muted'
                         "
-                    ><span v-html="link.label" /></Link>
+                        ><span v-html="link.label"
+                    /></Link>
                     <span
                         v-else
                         class="rounded border px-3 py-1 text-sm text-muted-foreground opacity-50"
@@ -203,13 +226,21 @@ function restoreBeneficiary(b: Beneficiary) {
                     <DialogTitle>Permanently Delete</DialogTitle>
                     <DialogDescription>
                         Are you sure you want to permanently delete
-                        <template v-if="deleteTarget">{{ deleteTarget.last_name }}, {{ deleteTarget.first_name }}</template>?
-                        This action cannot be undone.
+                        <template v-if="deleteTarget"
+                            >{{ deleteTarget.last_name }},
+                            {{ deleteTarget.first_name }}</template
+                        >? This action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" @click="showDeleteDialog = false">Cancel</Button>
-                    <Button variant="destructive" :disabled="processing" @click="confirmDelete">
+                    <Button variant="outline" @click="showDeleteDialog = false"
+                        >Cancel</Button
+                    >
+                    <Button
+                        variant="destructive"
+                        :disabled="processing"
+                        @click="confirmDelete"
+                    >
                         <template v-if="processing">Deleting...</template>
                         <template v-else>Delete Permanently</template>
                     </Button>
