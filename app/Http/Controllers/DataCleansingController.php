@@ -76,7 +76,7 @@ class DataCleansingController extends Controller
 
     public function destroy(Beneficiary $beneficiary): RedirectResponse
     {
-        $beneficiary->delete();
+        $beneficiary->forceDelete();
 
         return back();
     }
@@ -141,7 +141,7 @@ class DataCleansingController extends Controller
                 ->whereIn('beneficiary_id', $removeIds)
                 ->update(['beneficiary_id' => $keepId]);
 
-            Beneficiary::whereIn('id', $removeIds)->delete();
+            Beneficiary::whereIn('id', $removeIds)->forceDelete();
         });
     }
 }

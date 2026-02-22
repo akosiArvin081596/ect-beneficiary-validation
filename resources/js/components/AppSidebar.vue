@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, ClipboardList, Folder, LayoutGrid, Sparkles, Users } from 'lucide-vue-next';
+import { BookOpen, ClipboardList, Folder, LayoutGrid, Sparkles, Trash2, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -18,6 +18,7 @@ import { dashboard } from '@/routes';
 import { index as beneficiariesIndex } from '@/routes/beneficiaries';
 import { index as dataCleansingIndex } from '@/routes/data-cleansing';
 import { index as masterlistIndex } from '@/routes/masterlist';
+import { index as trashIndex } from '@/routes/trash';
 import { type NavItem } from '@/types';
 import AppLogo from './AppLogo.vue';
 
@@ -47,6 +48,11 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: 'Masterlist',
             href: masterlistIndex(),
             icon: ClipboardList,
+        });
+        items.push({
+            title: 'Trash',
+            href: trashIndex(),
+            icon: Trash2,
         });
     }
 

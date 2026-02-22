@@ -102,6 +102,13 @@ class MasterlistController extends Controller
         return to_route('masterlist.show', $beneficiary);
     }
 
+    public function destroy(Beneficiary $beneficiary): RedirectResponse
+    {
+        $beneficiary->delete();
+
+        return to_route('masterlist.index');
+    }
+
     public function exportCsv(Request $request): StreamedResponse
     {
         $search = $request->query('search');

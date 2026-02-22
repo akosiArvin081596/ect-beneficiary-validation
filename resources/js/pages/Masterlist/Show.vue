@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-vue-next';
-import { computed, watch } from 'vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Trash2 } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,10 +10,18 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { index } from '@/routes/masterlist';
+import { index, destroy } from '@/routes/masterlist';
 import { type BreadcrumbItem } from '@/types';
 
 interface FamilyMember {
@@ -307,9 +315,21 @@ function submit() {
     });
 }
 
+const showDeleteDialog = ref(false);
+const deleting = ref(false);
+
+function confirmDelete() {
+    deleting.value = true;
+    router.delete(destroy(props.beneficiary.id).url, {
+        onFinish: () => {
+            deleting.value = false;
+            showDeleteDialog.value = false;
+        },
+    });
+}
+
 const selectClass =
     'border-input bg-background text-foreground h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
-const sectionTitleClass = 'text-base font-semibold';
 const radioGroupClass = 'flex items-center gap-6';
 const radioClass = 'flex items-center gap-2 cursor-pointer';
 </script>
@@ -326,10 +346,16 @@ const radioClass = 'flex items-center gap-2 cursor-pointer';
                         Back to Masterlist
                     </Link>
                 </Button>
-                <Button @click="submit" :disabled="form.processing" size="sm">
-                    <template v-if="form.processing">Saving...</template>
-                    <template v-else>Save Changes</template>
-                </Button>
+                <div class="flex items-center gap-2">
+                    <Button variant="destructive" size="sm" @click="showDeleteDialog = true">
+                        <Trash2 class="mr-2 h-4 w-4" />
+                        Delete
+                    </Button>
+                    <Button @click="submit" :disabled="form.processing" size="sm">
+                        <template v-if="form.processing">Saving...</template>
+                        <template v-else>Save Changes</template>
+                    </Button>
+                </div>
             </div>
 
             <form @submit.prevent="submit" class="space-y-6">
@@ -816,5 +842,24 @@ const radioClass = 'flex items-center gap-2 cursor-pointer';
                 </div>
             </form>
         </div>
+
+        <Dialog v-model:open="showDeleteDialog">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Delete Beneficiary</DialogTitle>
+                    <DialogDescription>
+                        Are you sure you want to delete {{ beneficiary.last_name }}, {{ beneficiary.first_name }}?
+                        This record will be moved to Trash and can be restored later.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <Button variant="outline" @click="showDeleteDialog = false">Cancel</Button>
+                    <Button variant="destructive" :disabled="deleting" @click="confirmDelete">
+                        <template v-if="deleting">Deleting...</template>
+                        <template v-else>Delete</template>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>

@@ -4,6 +4,7 @@ use App\Http\Controllers\BeneficiaryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataCleansingController;
 use App\Http\Controllers\MasterlistController;
+use App\Http\Controllers\TrashController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -30,6 +31,11 @@ Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('masterlist/export-csv', [MasterlistController::class, 'exportCsv'])->name('masterlist.export-csv');
     Route::get('masterlist/{beneficiary}', [MasterlistController::class, 'show'])->name('masterlist.show');
     Route::put('masterlist/{beneficiary}', [MasterlistController::class, 'update'])->name('masterlist.update');
+    Route::delete('masterlist/{beneficiary}', [MasterlistController::class, 'destroy'])->name('masterlist.destroy');
+
+    Route::get('trash', [TrashController::class, 'index'])->name('trash.index');
+    Route::post('trash/{id}/restore', [TrashController::class, 'restore'])->name('trash.restore');
+    Route::delete('trash/{id}', [TrashController::class, 'destroy'])->name('trash.destroy');
 });
 
 require __DIR__.'/settings.php';
