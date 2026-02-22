@@ -2,13 +2,18 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { useDebounceFn } from '@vueuse/core';
 import { Download } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { index, show, exportCsv } from '@/routes/masterlist';
 import { type BreadcrumbItem } from '@/types';
+
+interface LocationOption {
+    name: string;
+    municipalities: string[];
+}
 
 interface Beneficiary {
     id: number;
@@ -40,7 +45,8 @@ interface PaginatedBeneficiaries {
 
 const props = defineProps<{
     beneficiaries: PaginatedBeneficiaries;
-    filters: { search: string };
+    locations: LocationOption[];
+    filters: { search: string; province: string; municipality: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -62,28 +68,50 @@ function formatDate(dateStr: string): string {
     });
 }
 
-function exportUrl(): string {
-    const url = exportCsv().url;
-    if (search.value) {
-        return `${url}?search=${encodeURIComponent(search.value)}`;
-    }
-    return url;
+// ── Filters ─────────────────────────────────────────────────────────────────
+const search = ref(props.filters.search);
+const province = ref(props.filters.province);
+const municipality = ref(props.filters.municipality);
+
+const filteredMunicipalities = computed(() => {
+    if (!province.value) return [];
+    const loc = props.locations.find((l) => l.name === province.value);
+    return loc ? loc.municipalities : [];
+});
+
+function buildParams(): Record<string, string> {
+    const params: Record<string, string> = {};
+    if (search.value) params.search = search.value;
+    if (province.value) params.province = province.value;
+    if (municipality.value) params.municipality = municipality.value;
+    return params;
 }
 
-// ── Search ──────────────────────────────────────────────────────────────────
-const search = ref(props.filters.search);
-
-const performSearch = useDebounceFn(() => {
-    router.get(index().url, search.value ? { search: search.value } : {}, {
+function navigate() {
+    router.get(index().url, buildParams(), {
         preserveState: true,
         preserveScroll: true,
         replace: true,
     });
-}, 300);
+}
 
-watch(search, () => {
-    performSearch();
+const debouncedNavigate = useDebounceFn(navigate, 300);
+
+watch(search, () => debouncedNavigate());
+
+watch(province, () => {
+    municipality.value = '';
+    navigate();
 });
+
+watch(municipality, () => navigate());
+
+function exportUrl(): string {
+    const params = buildParams();
+    const qs = new URLSearchParams(params).toString();
+    const url = exportCsv().url;
+    return qs ? `${url}?${qs}` : url;
+}
 </script>
 
 <template>
@@ -106,13 +134,30 @@ watch(search, () => {
                 </Button>
             </div>
 
-            <!-- Search -->
-            <Input
-                v-model="search"
-                type="text"
-                placeholder="Search by last name, first name, or middle name..."
-                class="max-w-sm"
-            />
+            <!-- Filters -->
+            <div class="flex flex-wrap items-end gap-3">
+                <Input
+                    v-model="search"
+                    type="text"
+                    placeholder="Search by name..."
+                    class="w-64"
+                />
+                <select
+                    v-model="province"
+                    class="border-input bg-background text-foreground h-9 rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                >
+                    <option value="">All Provinces</option>
+                    <option v-for="loc in locations" :key="loc.name" :value="loc.name">{{ loc.name }}</option>
+                </select>
+                <select
+                    v-model="municipality"
+                    :disabled="!province"
+                    class="border-input bg-background text-foreground h-9 rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:opacity-50"
+                >
+                    <option value="">All Municipalities</option>
+                    <option v-for="m in filteredMunicipalities" :key="m" :value="m">{{ m }}</option>
+                </select>
+            </div>
 
             <div class="overflow-x-auto rounded-xl border">
                 <table class="w-full text-sm whitespace-nowrap">

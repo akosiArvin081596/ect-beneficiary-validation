@@ -17,6 +17,8 @@ class MasterlistController extends Controller
     public function index(Request $request): Response
     {
         $search = $request->query('search');
+        $province = $request->query('province');
+        $municipality = $request->query('municipality');
 
         $beneficiaries = Beneficiary::query()
             ->withCount(['siblings', 'children', 'relatives'])
@@ -28,13 +30,30 @@ class MasterlistController extends Controller
                         ->orWhere('middle_name', 'like', "%{$escaped}%");
                 });
             })
+            ->when($province, fn ($query, $province) => $query->where('province', $province))
+            ->when($municipality, fn ($query, $municipality) => $query->where('municipality', $municipality))
             ->latest()
             ->paginate(20)
             ->withQueryString();
 
+        $locations = Province::with('municipalities')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Province $p) => [
+                'name' => $p->name,
+                'municipalities' => $p->municipalities->sortBy('name')->pluck('name')->values()->all(),
+            ])
+            ->values()
+            ->all();
+
         return Inertia::render('Masterlist/Index', [
             'beneficiaries' => $beneficiaries,
-            'filters' => ['search' => $search ?? ''],
+            'locations' => $locations,
+            'filters' => [
+                'search' => $search ?? '',
+                'province' => $province ?? '',
+                'municipality' => $municipality ?? '',
+            ],
         ]);
     }
 
@@ -112,6 +131,8 @@ class MasterlistController extends Controller
     public function exportCsv(Request $request): StreamedResponse
     {
         $search = $request->query('search');
+        $province = $request->query('province');
+        $municipality = $request->query('municipality');
 
         $beneficiaries = Beneficiary::query()
             ->with(['siblings', 'children', 'relatives'])
@@ -123,6 +144,8 @@ class MasterlistController extends Controller
                         ->orWhere('middle_name', 'like', "%{$escaped}%");
                 });
             })
+            ->when($province, fn ($query, $province) => $query->where('province', $province))
+            ->when($municipality, fn ($query, $municipality) => $query->where('municipality', $municipality))
             ->latest()
             ->get();
 
