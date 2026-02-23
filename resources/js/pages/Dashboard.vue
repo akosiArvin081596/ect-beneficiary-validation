@@ -565,7 +565,7 @@ function fullName(b: BeneficiaryListItem): string {
                             <div class="rounded-lg bg-emerald-500/10 p-2">
                                 <Target class="size-4 text-emerald-500" />
                             </div>
-                            <CardTitle
+                            <CardTitle class="text-xl"
                                 >DROMIC vs Actual (Lanuza)</CardTitle
                             >
                         </div>
