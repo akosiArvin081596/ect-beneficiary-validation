@@ -11,7 +11,7 @@ use Inertia\Response;
 class DashboardController extends Controller
 {
     /**
-     * Baseline targets per barangay for Lanuza municipality.
+     * DROMIC-based targets per barangay for Lanuza municipality.
      */
     private const LANUZA_BASELINE = [
         'Agsam' => 712,

@@ -55,7 +55,7 @@ interface RecentBeneficiary {
     created_at: string;
 }
 
-interface BaselineComparison {
+interface DROMICComparison {
     barangay: string;
     baseline: number;
     actual: number;
@@ -73,7 +73,7 @@ const props = defineProps<{
     by_municipality: MunicipalityCount[];
     by_barangay: BarangayCount[];
     recent_beneficiaries: RecentBeneficiary[];
-    baseline_comparison: BaselineComparison[];
+    baseline_comparison: DROMICComparison[];
 }>();
 
 const barangaysByMunicipality = computed(() => {
@@ -556,7 +556,7 @@ function fullName(b: BeneficiaryListItem): string {
                     </Card>
                 </div>
 
-                <!-- Baseline vs Actual (Lanuza) -->
+                <!-- DROMIC vs Actual (Lanuza) -->
                 <Card>
                     <CardHeader
                         class="flex flex-row items-center justify-between"
@@ -566,7 +566,7 @@ function fullName(b: BeneficiaryListItem): string {
                                 <Target class="size-4 text-emerald-500" />
                             </div>
                             <CardTitle
-                                >Baseline vs Actual (Lanuza)</CardTitle
+                                >DROMIC vs Actual (Lanuza)</CardTitle
                             >
                         </div>
                         <Badge variant="secondary"
@@ -586,7 +586,7 @@ function fullName(b: BeneficiaryListItem): string {
                             >
                                 <span>Barangay</span>
                                 <span class="text-center"
-                                    >Baseline</span
+                                    >DROMIC</span
                                 >
                                 <span class="text-center">Actual</span>
                                 <span class="text-center"
