@@ -582,7 +582,7 @@ function fullName(b: BeneficiaryListItem): string {
                         >
                             <!-- Table header -->
                             <div
-                                class="grid grid-cols-[1fr_70px_70px_80px_120px] items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs font-semibold text-muted-foreground"
+                                class="grid grid-cols-[1fr_80px_80px_100px_140px] items-center gap-2 border-b bg-muted/50 px-4 py-2.5 text-sm font-semibold text-muted-foreground"
                             >
                                 <span>Barangay</span>
                                 <span class="text-center"
@@ -600,7 +600,7 @@ function fullName(b: BeneficiaryListItem): string {
                             <div
                                 v-for="(row, idx) in props.baseline_comparison"
                                 :key="row.barangay"
-                                class="grid grid-cols-[1fr_70px_70px_80px_120px] items-center gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
+                                class="grid grid-cols-[1fr_80px_80px_100px_140px] items-center gap-2 px-4 py-3 transition-colors hover:bg-muted/30"
                                 :class="{
                                     'border-b':
                                         idx <
@@ -608,18 +608,18 @@ function fullName(b: BeneficiaryListItem): string {
                                 }"
                             >
                                 <span
-                                    class="truncate text-sm font-medium"
+                                    class="truncate text-base font-medium"
                                     >{{ row.barangay }}</span
                                 >
                                 <span
-                                    class="text-center text-sm text-muted-foreground"
+                                    class="text-center text-base text-muted-foreground"
                                     >{{
                                         row.baseline.toLocaleString()
                                     }}</span
                                 >
                                 <div class="flex justify-center">
                                     <span
-                                        class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md px-2 py-0.5 text-xs font-bold"
+                                        class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md px-2 py-0.5 text-sm font-bold"
                                         :class="
                                             row.actual >= row.baseline
                                                 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
@@ -631,7 +631,7 @@ function fullName(b: BeneficiaryListItem): string {
                                 </div>
                                 <div class="flex justify-center">
                                     <span
-                                        class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md px-2 py-0.5 text-xs font-bold"
+                                        class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md px-2 py-0.5 text-sm font-bold"
                                         :class="
                                             row.remaining === 0
                                                 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
@@ -645,7 +645,7 @@ function fullName(b: BeneficiaryListItem): string {
                                     class="flex items-center gap-2"
                                 >
                                     <div
-                                        class="h-2 flex-1 overflow-hidden rounded-full bg-muted"
+                                        class="h-2.5 flex-1 overflow-hidden rounded-full bg-muted"
                                     >
                                         <div
                                             class="h-full rounded-full transition-all duration-700"
@@ -666,7 +666,7 @@ function fullName(b: BeneficiaryListItem): string {
                                         />
                                     </div>
                                     <span
-                                        class="w-10 text-right text-xs font-medium"
+                                        class="w-12 text-right text-sm font-medium"
                                         :class="
                                             row.progress >= 100
                                                 ? 'text-emerald-600 dark:text-emerald-400'
@@ -680,7 +680,7 @@ function fullName(b: BeneficiaryListItem): string {
                             </div>
                             <!-- Summary row -->
                             <div
-                                class="grid grid-cols-[1fr_70px_70px_80px_120px] items-center gap-2 border-t bg-muted/50 px-4 py-2.5 text-sm font-bold"
+                                class="grid grid-cols-[1fr_80px_80px_100px_140px] items-center gap-2 border-t bg-muted/50 px-4 py-3 text-base font-bold"
                             >
                                 <span>Total</span>
                                 <span class="text-center">{{
@@ -696,7 +696,7 @@ function fullName(b: BeneficiaryListItem): string {
                                     class="flex items-center gap-2"
                                 >
                                     <div
-                                        class="h-2 flex-1 overflow-hidden rounded-full bg-muted"
+                                        class="h-2.5 flex-1 overflow-hidden rounded-full bg-muted"
                                     >
                                         <div
                                             class="h-full rounded-full transition-all duration-700"
@@ -717,7 +717,7 @@ function fullName(b: BeneficiaryListItem): string {
                                         />
                                     </div>
                                     <span
-                                        class="w-10 text-right text-xs font-medium"
+                                        class="w-12 text-right text-sm font-medium"
                                         :class="
                                             Number(baselineTotalProgress) >= 100
                                                 ? 'text-emerald-600 dark:text-emerald-400'
