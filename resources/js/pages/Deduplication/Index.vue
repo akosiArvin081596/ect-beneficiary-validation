@@ -34,7 +34,7 @@ interface Location {
 const props = defineProps<{
     groups: DuplicateGroup[];
     locations: Location[];
-    filters: { municipality: string };
+    filters: { province: string; municipality: string; level: string };
     pagination: {
         current_page: number;
         last_page: number;
@@ -49,25 +49,39 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// ── Municipality filter ─────────────────────────────────────────────────────
+// ── Filters ─────────────────────────────────────────────────────────────────
+const province = ref(props.filters.province);
 const municipality = ref(props.filters.municipality);
+const level = ref(props.filters.level);
 
-const allMunicipalities = computed(() => {
-    const munis: string[] = [];
-    for (const loc of props.locations) {
-        for (const m of loc.municipalities) {
-            munis.push(m);
-        }
-    }
-    return munis.sort();
+const filteredMunicipalities = computed(() => {
+    if (!province.value) return [];
+    const loc = props.locations.find((l) => l.name === province.value);
+    return loc ? loc.municipalities : [];
 });
 
-watch(municipality, (val) => {
-    router.get(index().url, val ? { municipality: val } : {}, {
+function buildParams(): Record<string, string> {
+    const params: Record<string, string> = {};
+    if (province.value) params.province = province.value;
+    if (municipality.value) params.municipality = municipality.value;
+    if (level.value) params.level = level.value;
+    return params;
+}
+
+function navigate() {
+    router.get(index().url, buildParams(), {
         preserveState: true,
         replace: true,
     });
+}
+
+watch(province, () => {
+    municipality.value = '';
+    navigate();
 });
+
+watch(municipality, () => navigate());
+watch(level, () => navigate());
 
 // ── Mark / Unmark ───────────────────────────────────────────────────────────
 const processing = ref<Record<number, boolean>>({});
@@ -102,18 +116,13 @@ function unmarkDuplicate(record: BeneficiaryRecord) {
 
 // ── Export ───────────────────────────────────────────────────────────────────
 function exportCleanList() {
-    const params = municipality.value
-        ? `?municipality=${encodeURIComponent(municipality.value)}`
-        : '';
-    window.location.href = `/deduplication/export-clean-list${params}`;
+    const qs = new URLSearchParams(buildParams()).toString();
+    window.location.href = `/deduplication/export-clean-list${qs ? `?${qs}` : ''}`;
 }
 
 // ── Pagination ──────────────────────────────────────────────────────────────
 function goToPage(page: number) {
-    const params: Record<string, string | number> = { page };
-    if (municipality.value) {
-        params.municipality = municipality.value;
-    }
+    const params: Record<string, string | number> = { ...buildParams(), page };
     router.get(index().url, params, { preserveState: true, replace: true });
 }
 
@@ -183,20 +192,44 @@ function formatDate(dateStr: string): string {
                 </Button>
             </div>
 
-            <!-- Municipality filter -->
-            <select
-                v-model="municipality"
-                class="h-9 w-64 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-            >
-                <option value="">Select municipality to scan...</option>
-                <option
-                    v-for="muni in allMunicipalities"
-                    :key="muni"
-                    :value="muni"
+            <!-- Filters -->
+            <div class="flex flex-wrap items-end gap-3">
+                <select
+                    v-model="province"
+                    class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
-                    {{ muni }}
-                </option>
-            </select>
+                    <option value="">All Provinces</option>
+                    <option
+                        v-for="loc in locations"
+                        :key="loc.name"
+                        :value="loc.name"
+                    >
+                        {{ loc.name }}
+                    </option>
+                </select>
+                <select
+                    v-model="municipality"
+                    :disabled="!province"
+                    class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50"
+                >
+                    <option value="">Select municipality to scan...</option>
+                    <option
+                        v-for="m in filteredMunicipalities"
+                        :key="m"
+                        :value="m"
+                    >
+                        {{ m }}
+                    </option>
+                </select>
+                <select
+                    v-model="level"
+                    class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                >
+                    <option value="strict">Strict (1 char diff)</option>
+                    <option value="moderate">Moderate (2 char diff)</option>
+                    <option value="loose">Loose (3 char diff)</option>
+                </select>
+            </div>
 
             <!-- Empty state -->
             <div

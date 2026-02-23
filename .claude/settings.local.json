@@ -44,7 +44,12 @@
       "Bash(php artisan:*)",
       "mcp__laravel-boost__browser-logs",
       "mcp__laravel-boost__last-error",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Bash(cd \"C:\\\\Users\\\\DSWDSRV-CARAGA\\\\Desktop\\\\ect-beneficiaries-validation\" && php vendor/bin/pint --dirty --format agent 2>&1)",
+      "Bash(export PATH=\"$HOME/AppData/Local/Programs/Herd/resources/bin:$HOME/.config/herd/bin:$PATH\" && cd \"C:\\\\Users\\\\DSWDSRV-CARAGA\\\\Desktop\\\\ect-beneficiaries-validation\" && php vendor/bin/pint --dirty --format agent 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\DSWDSRV-CARAGA\\\\Desktop\\\\ect-beneficiaries-validation\" && \"/c/Users/DSWDSRV-CARAGA/.config/herd/bin/php84\" vendor/bin/pint --dirty --format agent 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\DSWDSRV-CARAGA\\\\Desktop\\\\ect-beneficiaries-validation\" && \"/c/Users/DSWDSRV-CARAGA/.config/herd/bin/php84/php.exe\" vendor/bin/pint --dirty --format agent 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\DSWDSRV-CARAGA\\\\Desktop\\\\ect-beneficiaries-validation\" && npx eslint --fix \"resources/js/pages/Dashboard.vue\" 2>&1)"
     ]
   },
   "enableAllProjectMcpServers": true,

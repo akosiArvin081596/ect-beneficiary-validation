@@ -108,6 +108,7 @@ class BeneficiaryController extends Controller
     {
         return Beneficiary::where('first_name', $data['first_name'])
             ->where('last_name', $data['last_name'])
+            ->where('middle_name', $data['middle_name'] ?? null)
             ->where('birth_date', $data['birth_date'])
             ->exists();
     }

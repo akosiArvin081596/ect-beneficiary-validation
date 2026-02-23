@@ -14,9 +14,18 @@ class DeduplicationController extends Controller
 {
     public function index(Request $request): Response
     {
+        $province = $request->query('province');
         $municipality = $request->query('municipality');
+        $level = $request->query('level', 'moderate');
         $page = max(1, (int) $request->query('page', 1));
         $perPage = 10;
+
+        $thresholds = [
+            'strict' => [1, 2],   // [base, with birth_date match]
+            'moderate' => [2, 3],
+            'loose' => [3, 4],
+        ];
+        [$baseThreshold, $birthThreshold] = $thresholds[$level] ?? $thresholds['moderate'];
 
         $groups = [];
         $total = 0;
@@ -56,7 +65,7 @@ class DeduplicationController extends Controller
                         $birthMatch = $a->birth_date && $b->birth_date
                             && $a->birth_date->format('Y-m-d') === $b->birth_date->format('Y-m-d');
 
-                        $threshold = $birthMatch ? 3 : 2;
+                        $threshold = $birthMatch ? $birthThreshold : $baseThreshold;
 
                         if ($distance > 0 && $distance <= $threshold) {
                             $matched[$a->id] = $a;
@@ -108,7 +117,9 @@ class DeduplicationController extends Controller
             'groups' => $groups,
             'locations' => $locations,
             'filters' => [
+                'province' => $province ?? '',
                 'municipality' => $municipality ?? '',
+                'level' => $level,
             ],
             'pagination' => [
                 'current_page' => $page,

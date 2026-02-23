@@ -15,6 +15,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Search,
+    Target,
 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +55,14 @@ interface RecentBeneficiary {
     created_at: string;
 }
 
+interface BaselineComparison {
+    barangay: string;
+    baseline: number;
+    actual: number;
+    remaining: number;
+    progress: number;
+}
+
 const props = defineProps<{
     total_beneficiaries: number;
     totally_damaged: number;
@@ -64,6 +73,7 @@ const props = defineProps<{
     by_municipality: MunicipalityCount[];
     by_barangay: BarangayCount[];
     recent_beneficiaries: RecentBeneficiary[];
+    baseline_comparison: BaselineComparison[];
 }>();
 
 const barangaysByMunicipality = computed(() => {
@@ -77,6 +87,22 @@ const barangaysByMunicipality = computed(() => {
 
 const maxMunicipalityCount = computed(() => {
     return Math.max(...props.by_municipality.map((m) => m.count), 1);
+});
+
+const baselineTotals = computed(() => {
+    return props.baseline_comparison.reduce(
+        (acc, row) => ({
+            baseline: acc.baseline + row.baseline,
+            actual: acc.actual + row.actual,
+            remaining: acc.remaining + row.remaining,
+        }),
+        { baseline: 0, actual: 0, remaining: 0 },
+    );
+});
+
+const baselineTotalProgress = computed(() => {
+    const t = baselineTotals.value;
+    return t.baseline > 0 ? ((t.actual / t.baseline) * 100).toFixed(1) : '0';
 });
 
 function pct(value: number, total: number): string {
@@ -529,6 +555,181 @@ function fullName(b: BeneficiaryListItem): string {
                         </CardContent>
                     </Card>
                 </div>
+
+                <!-- Baseline vs Actual (Lanuza) -->
+                <Card>
+                    <CardHeader
+                        class="flex flex-row items-center justify-between"
+                    >
+                        <div class="flex items-center gap-2">
+                            <div class="rounded-lg bg-emerald-500/10 p-2">
+                                <Target class="size-4 text-emerald-500" />
+                            </div>
+                            <CardTitle
+                                >Baseline vs Actual (Lanuza)</CardTitle
+                            >
+                        </div>
+                        <Badge variant="secondary"
+                            >{{
+                                props.baseline_comparison.length
+                            }}
+                            Barangays</Badge
+                        >
+                    </CardHeader>
+                    <CardContent>
+                        <div
+                            class="overflow-hidden rounded-lg border"
+                        >
+                            <!-- Table header -->
+                            <div
+                                class="grid grid-cols-[1fr_70px_70px_80px_120px] items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs font-semibold text-muted-foreground"
+                            >
+                                <span>Barangay</span>
+                                <span class="text-center"
+                                    >Baseline</span
+                                >
+                                <span class="text-center">Actual</span>
+                                <span class="text-center"
+                                    >Remaining</span
+                                >
+                                <span class="text-center"
+                                    >Progress</span
+                                >
+                            </div>
+                            <!-- Table rows -->
+                            <div
+                                v-for="(row, idx) in props.baseline_comparison"
+                                :key="row.barangay"
+                                class="grid grid-cols-[1fr_70px_70px_80px_120px] items-center gap-2 px-4 py-2.5 transition-colors hover:bg-muted/30"
+                                :class="{
+                                    'border-b':
+                                        idx <
+                                        props.baseline_comparison.length - 1,
+                                }"
+                            >
+                                <span
+                                    class="truncate text-sm font-medium"
+                                    >{{ row.barangay }}</span
+                                >
+                                <span
+                                    class="text-center text-sm text-muted-foreground"
+                                    >{{
+                                        row.baseline.toLocaleString()
+                                    }}</span
+                                >
+                                <div class="flex justify-center">
+                                    <span
+                                        class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md px-2 py-0.5 text-xs font-bold"
+                                        :class="
+                                            row.actual >= row.baseline
+                                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                                : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                                        "
+                                    >
+                                        {{ row.actual.toLocaleString() }}
+                                    </span>
+                                </div>
+                                <div class="flex justify-center">
+                                    <span
+                                        class="inline-flex min-w-[2.5rem] items-center justify-center rounded-md px-2 py-0.5 text-xs font-bold"
+                                        :class="
+                                            row.remaining === 0
+                                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                        "
+                                    >
+                                        {{ row.remaining.toLocaleString() }}
+                                    </span>
+                                </div>
+                                <div
+                                    class="flex items-center gap-2"
+                                >
+                                    <div
+                                        class="h-2 flex-1 overflow-hidden rounded-full bg-muted"
+                                    >
+                                        <div
+                                            class="h-full rounded-full transition-all duration-700"
+                                            :class="
+                                                row.progress >= 100
+                                                    ? 'bg-emerald-500'
+                                                    : row.progress >= 50
+                                                      ? 'bg-blue-500'
+                                                      : 'bg-amber-500'
+                                            "
+                                            :style="{
+                                                width:
+                                                    Math.min(
+                                                        row.progress,
+                                                        100,
+                                                    ) + '%',
+                                            }"
+                                        />
+                                    </div>
+                                    <span
+                                        class="w-10 text-right text-xs font-medium"
+                                        :class="
+                                            row.progress >= 100
+                                                ? 'text-emerald-600 dark:text-emerald-400'
+                                                : 'text-muted-foreground'
+                                        "
+                                        >{{
+                                            row.progress
+                                        }}%</span
+                                    >
+                                </div>
+                            </div>
+                            <!-- Summary row -->
+                            <div
+                                class="grid grid-cols-[1fr_70px_70px_80px_120px] items-center gap-2 border-t bg-muted/50 px-4 py-2.5 text-sm font-bold"
+                            >
+                                <span>Total</span>
+                                <span class="text-center">{{
+                                    baselineTotals.baseline.toLocaleString()
+                                }}</span>
+                                <span class="text-center">{{
+                                    baselineTotals.actual.toLocaleString()
+                                }}</span>
+                                <span class="text-center">{{
+                                    baselineTotals.remaining.toLocaleString()
+                                }}</span>
+                                <div
+                                    class="flex items-center gap-2"
+                                >
+                                    <div
+                                        class="h-2 flex-1 overflow-hidden rounded-full bg-muted"
+                                    >
+                                        <div
+                                            class="h-full rounded-full transition-all duration-700"
+                                            :class="
+                                                Number(baselineTotalProgress) >= 100
+                                                    ? 'bg-emerald-500'
+                                                    : Number(baselineTotalProgress) >= 50
+                                                      ? 'bg-blue-500'
+                                                      : 'bg-amber-500'
+                                            "
+                                            :style="{
+                                                width:
+                                                    Math.min(
+                                                        Number(baselineTotalProgress),
+                                                        100,
+                                                    ) + '%',
+                                            }"
+                                        />
+                                    </div>
+                                    <span
+                                        class="w-10 text-right text-xs font-medium"
+                                        :class="
+                                            Number(baselineTotalProgress) >= 100
+                                                ? 'text-emerald-600 dark:text-emerald-400'
+                                                : 'text-muted-foreground'
+                                        "
+                                        >{{ baselineTotalProgress }}%</span
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 <!-- LGU / Barangay Breakdown -->
                 <Card>
