@@ -44,7 +44,7 @@ class DashboardController extends Controller
                 'barangay' => $barangay,
                 'baseline' => $target,
                 'actual' => $actual,
-                'remaining' => max(0, $target - $actual),
+                'remaining' => $target - $actual,
                 'progress' => $target > 0 ? round(($actual / $target) * 100, 1) : 0,
             ];
         })->values();
